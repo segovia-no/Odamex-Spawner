@@ -21,6 +21,9 @@ npm run build
 
 * **Diego Segovia** - *Initial work* - [segovia-no](https://github.com/segovia-no)
 
+## License
+Odamex Spawner is released under the GNU General Public License v2. Please read [`LICENSE`](LICENSE) for further details regarding the license.
+
 ---
 
 This project was generated with [electron-vue](https://github.com/SimulatedGREG/electron-vue)@[45a3e22](https://github.com/SimulatedGREG/electron-vue/tree/45a3e224e7bb8fc71909021ccfdcfec0f461f634) using [vue-cli](https://github.com/vuejs/vue-cli). Documentation about the original structure can be found [here](https://simulatedgreg.gitbooks.io/electron-vue/content/index.html).
