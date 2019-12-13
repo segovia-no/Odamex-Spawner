@@ -1,6 +1,6 @@
-# odl
+# Odamex Spawner
 
-> a modern web based odamex launcher
+> a modern web based odamex launcher with wad management support and a community hub
 
 #### Build Setup
 
@@ -16,6 +16,10 @@ npm run build
 
 
 ```
+
+## Authors
+
+* **Diego Segovia** - *Initial work* - [segovia-no](https://github.com/segovia-no)
 
 ---
 
