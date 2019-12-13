@@ -109,13 +109,16 @@
       margin-bottom: 30px;
     }
 
+    a:hover{
+      text-decoration: none !important;
+    }
+
     .list-group-item{
       color: #ddd;
       background-color: #2d2d2d;
       transition: all 0.2s;
 
       &:hover{
-        text-decoration: none !important;
         background-color: #444;
       }
     }
@@ -124,7 +127,7 @@
       margin-right: -7px;
       color: #303030;
       background-color: #e3e7ea;
-      border-left: 6px solid #ff551c;
+      border-left: 6px solid #EF5435;
       -webkit-box-shadow: 4px 6px 21px 0px rgba(0,0,0,0.18);
       -moz-box-shadow: 4px 6px 21px 0px rgba(0,0,0,0.18);
       box-shadow: 4px 6px 21px 0px rgba(0,0,0,0.18);
@@ -148,7 +151,7 @@
   }
 
   #menu-toggle{
-    background-color: #dfdfdf;
+    background-color: #ddd;
 
     &:hover{
       background-color: #c8c8c8;
