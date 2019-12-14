@@ -36,7 +36,11 @@
       </template>
 
       <template v-slot:cell(playeroccupance)="data">
-        {{ data.item.ingameplayers }} / {{ data.item.maxplayers }}
+        {{ data.item.inGamePlayers }} / {{ data.item.maxPlayers }}
+      </template>
+
+      <template v-slot:cell(pwadList)="data">
+        {{ data.item.pwadList.toString() }}
       </template>
 
       <template v-slot:table-busy>
@@ -96,13 +100,13 @@
             sortable: true
           },
           {
-            key: 'gametype',
+            key: 'gameType',
             label: 'Type',
             sortable: true
           },
           {
-            key: 'pwad',
-            label: 'PWAD',
+            key: 'pwadList',
+            label: "PWAD's",
             sortable: true
           },
           {
@@ -145,7 +149,6 @@
       retrieveGameServerInfo(ip){
         if(this.serverIPS.length > 0){
           this.serverIPS.forEach(server => {
-            socket.send(LAUNCHER_CHALLENGE, server.port, server.ip)
             socket.send(SERVER_CHALLENGE, server.port, server.ip)
           })
         }
@@ -158,7 +161,7 @@
           this.serverList.push(serverinfo)
         }else{
           Object.assign(this.serverList[indexFound], serverinfo)
-          this.serverList[indexFound].playeroccupance = this.serverList[indexFound].ingameplayers + (0.001 * this.serverList[indexFound].maxplayers) //precalcs virtual column of players
+          this.serverList[indexFound].playeroccupance = this.serverList[indexFound].inGamePlayers + (0.001 * this.serverList[indexFound].maxPlayers) //precalcs virtual column of players
         }
 
         this.tableState = (this.serverList.length > 0) ? 'ok' : 'loading'
@@ -187,7 +190,7 @@
           let hexResponse = serverResponse.toString('hex')
 
           if(hexResponse.indexOf('d4d65400') != -1){
-            vueThis.saveGameServer(gameserverparser.getInGamePlayers(serverResponse, info))
+            vueThis.saveGameServer(gameserverparser.getInfofromSERVER_CHALLENGE(serverResponse, info))
           }else{
             vueThis.saveGameServer(gameserverparser.getInfofromLAUNCHER_CHALLENGE(serverResponse, info)) 
           }

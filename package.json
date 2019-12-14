@@ -17,8 +17,8 @@
     "postinstall": ""
   },
   "build": {
-    "productName": "odl",
-    "appId": "com.segoviano.odl",
+    "productName": "odamexspawner",
+    "appId": "com.segoviano.odamexspawner",
     "directories": {
       "output": "build"
     },
