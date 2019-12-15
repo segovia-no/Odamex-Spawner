@@ -368,7 +368,7 @@ let gameserverparser = {
     serverInfo.maxPlayers = serverResponse.readUInt8(currentindex)
 
     if(serverInfo.maxPlayers <= 2 && serverInfo.gameType == 'Deathmatch'){
-      serverInfo.gameType == 'Duel'
+      serverInfo.gameType = 'Duel'
     }
 
     currentindex++
