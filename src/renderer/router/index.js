@@ -9,6 +9,11 @@ export default new Router({
       path: '/',
       name: 'serverlist',
       component: require('@/components/ServerList').default
+    },
+    {
+      path: '/directconnection',
+      name: 'directconnection',
+      component: require('@/components/DirectConnection').default
     }
   ]
 })

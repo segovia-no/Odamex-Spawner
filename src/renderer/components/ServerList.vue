@@ -36,7 +36,7 @@
       </template>
 
       <template v-slot:cell(playeroccupance)="data">
-        {{ data.item.inGamePlayers }} / {{ data.item.maxPlayers }}
+        {{ data.item.inGamePlayers }} / {{ data.item.maxClients }}
       </template>
 
       <template v-slot:cell(pwadList)="data">
@@ -62,8 +62,7 @@
   import gameserverparser from '@/libs/gameserverparser.js'
 
   //declare socket configs 
-  const socket = dgram.createSocket('udp4')
-  socket.bind(52371)
+  let socket
 
   //master server ip
   let masterServer = '208.97.140.174'
@@ -77,7 +76,7 @@
   let executablePath = "./odamexbin/odamex.exe"
 
   export default {
-    name: 'server-list',
+    name: 'serverlist',
     data(){
       return{
         serverIPS: [],
@@ -146,7 +145,7 @@
         
         this.retrieveGameServerInfo()
       },
-      retrieveGameServerInfo(ip){
+      retrieveGameServerInfo(){
         if(this.serverIPS.length > 0){
           this.serverIPS.forEach(server => {
             socket.send(SERVER_CHALLENGE, server.port, server.ip)
@@ -175,6 +174,9 @@
     },
     mounted(){
 
+      //init socket
+      socket = dgram.createSocket('udp4')
+
       let vueThis = this
       let serverResponse
 
@@ -202,6 +204,9 @@
       //get server list
       this.retrieveServerIPS()
 
+    },
+    beforeDestroy(){
+      socket.close()
     }
   }
 </script>
