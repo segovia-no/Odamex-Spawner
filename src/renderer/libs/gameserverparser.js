@@ -116,20 +116,44 @@ let gameserverparser = {
     //gametype
     let gametypeByte = serverResponse.readUInt8(currentindex)
 
-    if(gametypeByte == 0){
-      serverInfo.gameType = 'Cooperative'
-    }else if(gametypeByte == 1){
-      serverInfo.gameType = 'Deathmatch'
-    }else if(gametypeByte == 2){
-      serverInfo.gameType = 'Team Deathmatch'
-    }else if(gametypeByte == 3){
-      serverInfo.gameType = 'Capture The Flag'
+    switch(gametypeByte) {
+      case 0:
+        serverInfo.gameType = 'Cooperative'
+        break
+      case 1:
+        serverInfo.gameType = 'Deathmatch'
+        break
+      case 2:
+        serverInfo.gameType = 'Team Deathmatch'
+        break
+      case 3:
+        serverInfo.gameType = 'Capture The Flag'
+      break
     }
 
     currentindex++
 
     //skill level
-    serverInfo.skillLevel = serverResponse.readUInt8(currentindex)
+    let skilllevel = serverResponse.readUInt8(currentindex)
+
+    switch(skilllevel) {
+      case 1:
+        serverInfo.skillLevel = "I'm too young to die"
+        break
+      case 2:
+        serverInfo.skillLevel = "Hey, not too rough"
+        break
+      case 3:
+        serverInfo.skillLevel = "Hurt me plenty"
+        break
+      case 4:
+        serverInfo.skillLevel = "Ultra-Violence"
+      break
+      case 5:
+        serverInfo.skillLevel = "Nightmare!"
+        break
+    }
+
     currentindex++
 
     //teamplay
@@ -390,85 +414,14 @@ let gameserverparser = {
     currentindex += 4 //skip extra information field
 
     //passworded
-    serverInfo.passworded = (serverResponse.readUInt8(currentindex) == 1) ? true : false
+    let indexExtrainfo = serverResponse.indexOf("05030201", 0, "hex")
+    serverInfo.passworded = (serverResponse.readUInt8(indexExtrainfo + 4)) ? true : false
     currentindex++
 
     //game version
-    serverInfo.gameVersion = serverResponse.readUInt32LE(currentindex)
+    serverInfo.gameVersion = serverResponse.readUInt32LE(indexExtrainfo + 7)
 
     //return object definition
-    return serverInfo
-
-  },
-
-  //DEPRECATION WARNING: This function below is being deprecated due to the implementation of 'getInfofromSERVER_CHALLENGE', which is more precise than this reversed engineered way
-  getInfofromLAUNCHER_CHALLENGE: (serverResponse, info) => { 
-
-    let asciiResponse = serverResponse.toString('ascii')
-
-    //maxplayers parsing
-    let indexMaxplayers = serverResponse.indexOf('73765f6d6178706c617965727300', 'hex') + 15 //all spaces away from this string + 1
-    let maxplayers = serverResponse.readUInt8(indexMaxplayers)
-
-    //gametype parsing
-    let indexGametype = asciiResponse.indexOf('sv_gametype') + 13
-    let gametypeByte = serverResponse.readUInt8(indexGametype)
-    let gametype = null
-
-    if(gametypeByte == 0){
-      gametype = 'Cooperative'
-    }else if(gametypeByte == 1){
-      gametype = (maxplayers <= 2) ? 'Deathmatch' : 'Duel'
-    }else if(gametypeByte == 2){
-      gametype = 'Team Deathmatch'
-    }else if(gametypeByte == 3){
-      gametype = 'Capture The Flag'
-    }
-
-    //hostname parsing
-    let indexHostname = asciiResponse.indexOf('sv_hostname') + 13
-    let hostnameString = []
-
-    while(serverResponse.readUInt8(indexHostname) != 0 && indexHostname < serverResponse.length){
-      hostnameString.push(asciiResponse.charAt(indexHostname))
-      indexHostname++
-    }
-
-    hostnameString = hostnameString.join('')
-
-    //IWAD parsing
-    let indexIWAD = asciiResponse.indexOf('ODAMEX.WAD') + 28
-    let iwadString = []
-
-    while(serverResponse.readUInt8(indexIWAD) != 0 && indexIWAD < serverResponse.length){
-      iwadString.push(asciiResponse.charAt(indexIWAD))
-      indexIWAD++
-    }
-
-    iwadString = iwadString.join('')
-
-    //PWAD parsing
-    let indexPWAD = indexIWAD + 18
-    let pwadString = []
-
-    while(serverResponse.readUInt8(indexPWAD) != 0 && indexPWAD < serverResponse.length){
-      pwadString.push(asciiResponse.charAt(indexPWAD))
-      indexPWAD++
-    }
-
-    pwadString = pwadString.join('')
-
-    //return object definition
-    let serverInfo = {
-      ip: info.address,
-      port: info.port,
-      gametype: gametype,
-      maxplayers: maxplayers,
-      hostname: hostnameString,
-      iwad: iwadString,
-      pwad: pwadString
-    }
-
     return serverInfo
 
   }

@@ -1,7 +1,7 @@
 <template>
   <div id="insidewrapper">
     
-    <h2 class="pageTitle">Server List <b-button size="sm" @click="retrieveServerIPS()"><font-awesome-icon icon="sync" /></b-button></h2>
+    <h2 class="pageTitle">Server List <b-button size="sm" variant="primary" @click="retrieveServerIPS()" class="float-right mt-1"><font-awesome-icon icon="sync" /> Refresh</b-button></h2>
 
     <p>Server count: {{serverList.length}}</p>
 
@@ -15,6 +15,7 @@
 
     </b-input-group>
 
+    <!--Server list table -->
     <b-table
       striped
       hover
@@ -28,8 +29,16 @@
       :busy="(tableState != 'ok') ? true : false"
       selectable
       select-mode="single"
-      @row-selected="connectToGameServer"
+      @row-selected="showServerInfo"
     >
+
+      <template v-slot:head(passworded)="data">
+        <font-awesome-icon icon="key" fixed-width />
+      </template>
+
+      <template v-slot:cell(passworded)="data">
+        <font-awesome-icon v-if="data.value" icon="key" fixed-width />
+      </template>
 
       <template v-slot:cell(fulladdress)="data">
         {{ data.item.ip }}:{{ data.item.port }}
@@ -41,6 +50,50 @@
 
       <template v-slot:cell(pwadList)="data">
         {{ data.item.pwadList.toString() }}
+      </template>
+
+      <template v-slot:row-details="row">
+        <b-card>
+
+          <b-row>
+
+            <b-col xl="7" lg="6" md="12" class="serverInfo">
+              <b-card-title>{{row.item.hostname}}</b-card-title>
+              <b-card-sub-title class="mb-2 serverAddress">{{row.item.ip}}:{{row.item.port}}</b-card-sub-title>
+              <p><strong>{{ row.item.inGamePlayers }} out of {{ row.item.maxClients }} Players</strong></p>
+              <p><strong>MAP: {{ row.item.currentMap}}</strong></p>
+              <p><strong>IWAD: {{ row.item.iwad}}</strong></p>
+
+              <b-badge v-if="!row.item.ctfMode" :variant="gameTypeColor(row.item)"><font-awesome-icon icon="users" fixed-width /> {{(row.item.teamPlay && row.item.gameType == 'Deathmatch') ? 'Team Deathmatch' : row.item.gameType}}</b-badge>
+              <b-badge v-if="row.item.ctfMode" variant="info"><font-awesome-icon icon="flag" fixed-width /> CTF</b-badge>
+              <b-badge v-if="row.item.friendlyFire" variant="warning"><font-awesome-icon icon="crosshairs" fixed-width /> Friendly Fire</b-badge>
+              <b-badge v-if="row.item.fastMonsters" variant="danger"><font-awesome-icon icon="running" fixed-width /> Fast Monsters</b-badge>
+              <b-badge v-if="row.item.passworded" variant="secondary"><font-awesome-icon icon="key" fixed-width /> Passworded</b-badge>
+              <b-badge v-if="row.item.infiniteAmmo" variant="success"><font-awesome-icon icon="infinity" fixed-width /> Infinite Ammo</b-badge>
+              <b-badge v-if="row.item.wadDownload" variant="dark"><font-awesome-icon icon="box-open" fixed-width /> WAD Downloads</b-badge>
+
+            </b-col>
+
+            <b-col xl="5" lg="6" md="12">
+
+              <div v-if="!row.item.passworded">
+                <b-button @click="connectToGameServer" variant="primary" class="float-right">Connect <font-awesome-icon :icon="(!selectedServer.passworded) ? 'plug' : 'key'" fixed-width /></b-button>
+              </div>
+
+              <div v-if="row.item.passworded" class="w-100">
+                <b-input-group prepend="Server password" size="sm" class="mb-3">
+                  <b-form-input v-model="connectPassword" type="password"></b-form-input>
+                </b-input-group>
+
+                <b-button @click="connectToGameServer" :disabled="!connectPassword" variant="warning" class="float-right">Connect <font-awesome-icon icon="key" fixed-width /></b-button>
+                
+              </div>
+
+            </b-col>
+
+          </b-row>
+
+        </b-card>
       </template>
 
       <template v-slot:table-busy>
@@ -58,6 +111,7 @@
 <script>
   import dgram from 'dgram'
 
+  import apiparser from '@/libs/apiparser.js'
   import masterserverparser from '@/libs/masterserverparser.js'
   import gameserverparser from '@/libs/gameserverparser.js'
 
@@ -79,11 +133,66 @@
     name: 'serverlist',
     data(){
       return{
+        retrieveMode: 'manual',
         serverIPS: [],
         serverList: [],
         serverListfilter: null,
         tableState: 'loading',
+        lastselectedServerIndex: null,
+        selectedServer: {
+          ip: null,
+          port: null,
+          hostname: '',
+          inGamePlayers: 0,
+          maxClients: 0,
+          currentMap: '',
+          wadCount: 0,
+          iwad: '',
+          pwadList: [],
+          gameType: '',
+          skillLevel: '',
+          teamPlay: false,
+          ctfMode: false,
+          playersList: [],
+          pwadMD5hashes: [],
+          serverWebsite: '',
+          teamScoreLimit: 0,
+          blueTeam: false,
+          blueScore: 0,
+          redTeam: false,
+          redScore: 0,
+          goldTeam: false,
+          goldScore: 0,
+          protocolVersion: 0,
+          adminEmail: '',
+          timeLimit: 0,
+          timeLeft: 0,
+          fragLimit: 0,
+          itemRespawn: false,
+          weaponStay: false,
+          friendlyFire: false,
+          allowExit: false,
+          infiniteAmmo: false,
+          noMonsters: false,
+          monstersRespawn: false,
+          fastMonsters: false,
+          allowJumping: false,
+          allowFreelook: false,
+          wadDownload: false,
+          emptyReset: false,
+          fragExitSwitch: false,
+          maxPlayers: 0,
+          spectators: [],
+          passworded: false,
+          gameVersion: 0
+        },
+        connectPhase: 1,
+        connectPassword: null,
         serverFields:[
+          {
+            key: 'passworded',
+            sortable: true
+          },
           {
             key: 'hostname',
             label: 'Hostname',
@@ -120,11 +229,18 @@
       open(link){
         this.$electron.shell.openExternal(link)
       },
-      retrieveServerIPS(){
+      async retrieveServerIPS(){
         this.tableState = 'loading'
         this.serverList = []
-        socket.send(SERVER_CHALLENGE, 15000, masterServer)
-        socket.send(SERVER_CHALLENGE, 15000, masterServer2)
+
+        if(this.retrieveMode == 'manual'){
+          socket.send(SERVER_CHALLENGE, 15000, masterServer)
+          socket.send(SERVER_CHALLENGE, 15000, masterServer2)
+
+        }else if(this.retrieveMode == 'api'){
+          let response = await apiparser.getInfofromAPI('https://odamex.net/api/servers')
+        }
+        
       },
       saveServerIPS(ips, masterServerAddress){
 
@@ -165,11 +281,55 @@
 
         this.tableState = (this.serverList.length > 0) ? 'ok' : 'loading'
       },
-      connectToGameServer(server){
+      showServerInfo(server){
 
-        let connectParam = ["-connect", server[0].ip + ":" + server[0].port, "-waddir", "./odamexbin"]
+        if(server.length > 0){
 
-        child(executablePath, connectParam, function(err, data){})
+          let newServerIndex = this.serverList.findIndex(srv => srv.hostname === server[0].hostname)
+
+          this.connectPassword = null
+          this.selectedServer = server[0]
+          server[0]._showDetails = true
+          
+          //close old selected server
+          if(this.lastselectedServerIndex != -1 && this.lastselectedServerIndex != null){
+            this.serverList[this.lastselectedServerIndex]._showDetails = false
+          }
+
+          this.lastselectedServerIndex = newServerIndex
+
+        }
+        
+      },
+      connectToGameServer(){
+
+        if(this.selectedServer.passworded){
+
+          if(this.connectPassword != null){
+            let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, "-waddir", "./wads", "-password", this.connectPassword]
+            child(executablePath, connectParam, function(err, data){})
+          }
+          
+        }else{
+
+          let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, "-waddir", "./wads"]
+          child(executablePath, connectParam, function(err, data){})
+
+        }
+
+      },
+      gameTypeColor(item){
+        if(item.gameType == 'Cooperative'){
+          return 'success'
+        }else if(item.gameType == 'Deathmatch'){
+          if(item.teamPlay){
+            return 'primary'
+          }else{
+            return 'warning'
+          }
+        }else if(item.gameType == 'Duel'){
+          return 'info'
+        }
       }
     },
     mounted(){
@@ -247,6 +407,27 @@
   td{
     font-size: 13px;
     cursor: pointer;
+  }
+
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+  .fade-enter, .fade-leave-to{
+    opacity: 0;
+  }
+
+  .serverInfo{
+
+    .serverAddress{
+      border-bottom: 2px solid #fa8225;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+
+    p{
+      margin-bottom: 3px;
+    }
+
   }
 
 </style>

@@ -14,6 +14,11 @@ export default new Router({
       path: '/directconnection',
       name: 'directconnection',
       component: require('@/components/DirectConnection').default
+    },
+    {
+      path: '/wads',
+      name: 'wads',
+      component: require('@/components/Wads').default
     }
   ]
 })
