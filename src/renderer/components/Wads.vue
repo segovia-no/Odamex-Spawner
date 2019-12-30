@@ -1,9 +1,10 @@
 <template>
   <div id="insidewrapper">
     
-    <h2 class="pageTitle">Downloaded WAD's 
+    <h2 class="pageTitle">Installed WAD's 
       <b-button size="sm" variant="success" class="float-right mt-1" disabled><font-awesome-icon icon="plus" /> Get More!</b-button>
-      <b-button size="sm" variant="primary" class="float-right mt-1 mr-1"><font-awesome-icon icon="file-upload" /> Import</b-button>
+      <b-button size="sm" variant="info" class="float-right mt-1 mr-1"><font-awesome-icon icon="file-upload" /> Export</b-button>
+      <b-button size="sm" variant="primary" class="float-right mt-1 mr-1"><font-awesome-icon icon="file-download" /> Import</b-button>
       <b-button @click="loadWads()"size="sm" variant="secondary" class="float-right mt-1 mr-1"><font-awesome-icon icon="sync" /> Refresh</b-button>
     </h2>
 
@@ -14,7 +15,7 @@
 
         <b-list-group class="wadlistcontainer">
 
-          <b-list-group-item v-for="(wad, index) in wadsList" class="flex-column align-items-start">
+          <b-list-group-item v-for="(wad, index) in wadsList" :index="index" class="flex-column align-items-start">
             <div class="d-flex w-100 justify-content-between">
                 
               <h5 class="mb-1">
@@ -25,17 +26,15 @@
 
               </h5>
 
-              <small>File</small>
+              <small>
+                <b-button @click="openDeleteWADModal(wad)" size="sm" variant="danger" class="float-right"><font-awesome-icon icon="times" /> Delete</b-button>
+                <b-button @click="openRenameWADModal(wad)" size="sm" variant="secondary" class="float-right mr-1"><font-awesome-icon icon="edit" /> Rename</b-button>
+              </small>
             </div>
 
             <p class="mb-1">
               Filesize: {{wad.fileSizeMB}} MB
             </p>
-
-            <small>
-              <b-button size="sm" variant="secondary" class="float-right"><font-awesome-icon icon="edit" /> Rename</b-button>
-              <b-button size="sm" variant="danger" class="float-right mr-1"><font-awesome-icon icon="times" /> Delete</b-button>
-            </small>
 
           </b-list-group-item>
 
@@ -43,6 +42,51 @@
              
       </b-col>
     </b-row>
+
+    <!--Modal: Delete WAD  -->
+    <b-modal 
+      id="deletewadmodal" 
+      title="Delete WAD?"
+      header-bg-variant="dark"
+      header-text-variant="light"
+      >
+
+      <p>Are you sure you want to delete <strong>{{selectedWAD.filename}}</strong> ?</p>
+
+      <b-alert v-if="selectedWAD.validCommercialChecksum" variant="warning" show>
+        
+        <p>
+          <font-awesome-icon icon="exclamation-triangle" />
+          <strong>Attention:</strong> This commercial WAD cannot be downloaded using this launcher. To reuse it, <strong>you must own</strong> a copy of this commercial wad and reimport it
+        </p>
+
+      </b-alert>
+
+      <template v-slot:modal-footer="{ ok, cancel}">
+        <b-button variant="secondary" @click="cancel()">Cancel</b-button>
+        <b-button variant="danger" @click="deleteWAD()"><font-awesome-icon icon="times" /> Delete it</b-button>
+      </template>
+    </b-modal>
+
+    <!--Modal: Rename WAD  -->
+    <b-modal 
+      id="renamewadmodal" 
+      title="Renaming WAD"
+      header-bg-variant="dark"
+      header-text-variant="light"
+      >
+
+      <p>Enter a new name for the WAD <strong>{{selectedWAD.filename}}</strong> ?</p>
+
+      <b-input-group prepend="New WAD name" append=".wad">
+        <b-form-input v-model="newWADname"></b-form-input>
+      </b-input-group>
+
+      <template v-slot:modal-footer="{ ok, cancel}">
+        <b-button variant="secondary" @click="cancel()">Cancel</b-button>
+        <b-button variant="primary" @click="renameWAD()" :disable="!newWADname"><font-awesome-icon icon="times" /> Delete it</b-button>
+      </template>
+    </b-modal>
     
   </div>
 </template>
@@ -62,6 +106,10 @@
     data(){
       return{
         wadsList: [],
+        selectedWAD: {
+          filename: null
+        },
+        newWADname: null,
         commercialWADS: [
           {
             name: 'DOOM.WAD',
@@ -157,6 +205,65 @@
           fs.createReadStream(filePath).on('data', data => hash.update(data)).on('end', () => resolve(hash.digest('hex')))
 
         })
+      },
+      openDeleteWADModal(wad){
+        this.selectedWAD = wad
+        this.$root.$emit('bv::show::modal', 'deletewadmodal')
+      },
+      deleteWAD(){
+
+        let vueThis = this
+
+        if(this.selectedWAD.filename !== null){
+
+          let relPath = path.join('./', 'wads', '/', this.selectedWAD.filename)
+
+          fs.unlink(relPath, (err) => {
+            if(err) {
+              console.error(err)
+              return
+            }
+
+            vueThis.selectedWAD = {filename: null} //uugh... ugly
+
+            vueThis.$root.$emit('bv::hide::modal', 'deletewadmodal')
+
+            vueThis.loadWads()
+
+          })
+
+        }
+
+      },
+      openRenameWADModal(wad){
+        this.selectedWAD = wad
+        this.$root.$emit('bv::show::modal', 'renamewadmodal')
+      },
+      renameWAD(){
+
+        let vueThis = this
+
+        if(this.selectedWAD.filename !== null && this.newWADname){
+
+          let relPath = path.join('./', 'wads', '/', this.selectedWAD.filename)
+          let newrelPath = path.join('./', 'wads', '/', this.newWADname + '.wad')
+
+          fs.rename(relPath, newrelPath, (err) => {
+            if(err){
+              console.error(err)
+              return
+            }
+
+            vueThis.selectedWAD = {filename: null} //uugh... ugly
+
+            vueThis.$root.$emit('bv::hide::modal', 'renamewadmodal')
+
+            vueThis.loadWads()
+            
+          })
+
+        }
+
       }
     },
     mounted(){
