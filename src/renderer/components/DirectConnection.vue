@@ -35,8 +35,18 @@
 
           <b-card-text>A second paragraph of text in the card.</b-card-text>
 
-          <a href="#" class="card-link">Card link</a>
-          <b-link href="#" class="card-link">Another link</b-link>
+          <div v-if="!serverData.passworded">
+            <b-button @click="connectToGameServer" variant="primary" class="float-right">Connect <font-awesome-icon :icon="(!serverData.passworded) ? 'plug' : 'key'" fixed-width /></b-button>
+          </div>
+
+          <div v-if="serverData.passworded" class="w-100">
+            <b-input-group prepend="Server password" size="sm" class="mb-3">
+              <b-form-input v-model="connectPassword" type="password"></b-form-input>
+            </b-input-group>
+
+            <b-button @click="connectToGameServer" :disabled="!connectPassword" variant="warning" class="float-right">Connect <font-awesome-icon icon="key" fixed-width /></b-button>
+            
+          </div>
 
         </b-card>
 
@@ -71,6 +81,7 @@
           hostname: '',
           iwad: ''
         },
+        connectPassword: null,
       }
     },
     methods:{
@@ -97,11 +108,22 @@
 
         this.tableState = (this.serverList.length > 0) ? 'ok' : 'loading'
       },
-      connectToGameServer(server){
+      connectToGameServer(){
 
-        let connectParam = ["-connect", server[0].ip + ":" + server[0].port, "-waddir", "./odamexbin"]
+        if(this.serverData.passworded){
 
-        child(executablePath, connectParam, function(err, data){})
+          if(this.connectPassword != null){
+            let connectParam = ["-connect", this.serverData.ip + ":" + this.serverData.port, this.connectPassword, "-waddir", "./wads"]
+            child(executablePath, connectParam, function(err, data){})
+          }
+          
+        }else{
+
+          let connectParam = ["-connect", this.serverData.ip + ":" + this.serverData.port, "-waddir", "./wads"]
+          child(executablePath, connectParam, function(err, data){})
+
+        }
+
       }
     },
     mounted(){

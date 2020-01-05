@@ -306,7 +306,7 @@
         if(this.selectedServer.passworded){
 
           if(this.connectPassword != null){
-            let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, "-waddir", "./wads", "-password", this.connectPassword]
+            let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, this.connectPassword, "-waddir", "./wads"]
             child(executablePath, connectParam, function(err, data){})
           }
           
