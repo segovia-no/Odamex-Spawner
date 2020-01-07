@@ -3,8 +3,8 @@
     
     <h2 class="pageTitle">Installed WAD's 
       <b-button size="sm" variant="success" class="float-right mt-1" disabled><font-awesome-icon icon="plus" /> Get More!</b-button>
-      <b-button size="sm" variant="info" class="float-right mt-1 mr-1"><font-awesome-icon icon="file-upload" /> Export</b-button>
-      <b-button size="sm" variant="primary" class="float-right mt-1 mr-1"><font-awesome-icon icon="file-download" /> Import</b-button>
+      <b-button size="sm" variant="info" class="float-right mt-1 mr-1" disabled><font-awesome-icon icon="file-upload" /> Export</b-button>
+      <b-button @click="importWads()" size="sm" variant="primary" class="float-right mt-1 mr-1"><font-awesome-icon icon="file-download" /> Import</b-button>
       <b-button @click="loadWads()"size="sm" variant="secondary" class="float-right mt-1 mr-1"><font-awesome-icon icon="sync" /> Refresh</b-button>
     </h2>
 
@@ -84,7 +84,7 @@
 
       <template v-slot:modal-footer="{ ok, cancel}">
         <b-button variant="secondary" @click="cancel()">Cancel</b-button>
-        <b-button variant="primary" @click="renameWAD()" :disable="!newWADname"><font-awesome-icon icon="times" /> Delete it</b-button>
+        <b-button variant="primary" @click="renameWAD()" :disable="!newWADname"><font-awesome-icon icon="edit" /> Rename it</b-button>
       </template>
     </b-modal>
     
@@ -97,6 +97,8 @@
   import fs from 'fs'
   import crypto from 'crypto'
   import util from 'util'
+
+  const { dialog } = require('electron').remote
 
   const directoryPath = path.join('./', 'wads')
   const readdirAsync = util.promisify(fs.readdir)
@@ -204,6 +206,46 @@
         }catch(e){
           console.log(e)
         }
+      },
+      async importWads(){
+
+        dialog.showOpenDialog(
+          { 
+            properties: ['openFile', 'multiSelections'],
+            filters: [{ name: 'WAD files', extensions: ['wad', 'WAD'] }]
+          }
+
+        ,(filepaths) => { //callback with filepaths
+
+          if(filepaths && filepaths.length > 0){
+
+            let wadsinLibrary = this.wadsList.map(wad => wad.filename.toUpperCase())
+            
+            //compare already imported wads
+            filepaths.forEach(file => {
+
+              let filename = path.basename(file)
+
+              if(wadsinLibrary.indexOf(filename.toUpperCase()) == -1){ //copy wads that are not in library
+
+                fs.copyFile(file, path.join(directoryPath, filename), (err) => {
+
+                  if(err){
+                    console.log('error importing ' + filename)
+                  }
+
+                })
+
+              }
+
+            })
+
+            this.loadWads()
+
+          }
+
+        })
+        
       },
       checkSHA1(filePath){
         return new Promise(resolve => {

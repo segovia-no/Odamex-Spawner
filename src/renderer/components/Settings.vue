@@ -9,12 +9,12 @@
         <b-card>
 
           <b-card-title>
-            <font-awesome-icon icon="download" fixed-width />Game Client Version
+            <font-awesome-icon icon="download" fixed-width /> Game Client Version
           </b-card-title>
 
-          <b-card-subtitle>
+          <b-card-sub-title>
             Install, download and manage your odamex versions
-          </b-card-subtitle>
+          </b-card-sub-title>
 
           <b-list-group class="mt-3">
 
