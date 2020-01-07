@@ -19,6 +19,11 @@ export default new Router({
       path: '/wads',
       name: 'wads',
       component: require('@/components/Wads').default
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: require('@/components/Settings').default
     }
   ]
 })

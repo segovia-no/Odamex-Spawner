@@ -272,11 +272,12 @@
 
         let indexFound = this.serverList.findIndex(server => {return server.ip == serverinfo.ip && server.port == serverinfo.port })
 
+        serverinfo.playeroccupance = serverinfo.inGamePlayers + (0.001 * serverinfo.maxPlayers) //precalcs virtual column of players
+
         if(indexFound == -1){
           this.serverList.push(serverinfo)
         }else{
           Object.assign(this.serverList[indexFound], serverinfo)
-          this.serverList[indexFound].playeroccupance = this.serverList[indexFound].inGamePlayers + (0.001 * this.serverList[indexFound].maxPlayers) //precalcs virtual column of players
         }
 
         this.tableState = (this.serverList.length > 0) ? 'ok' : 'loading'

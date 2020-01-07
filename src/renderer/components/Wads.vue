@@ -8,7 +8,7 @@
       <b-button @click="loadWads()"size="sm" variant="secondary" class="float-right mt-1 mr-1"><font-awesome-icon icon="sync" /> Refresh</b-button>
     </h2>
 
-    <p>WAD count: {{wadsList.length}}</p>
+    <p><strong>WAD count:</strong> {{wadsList.length}} | <strong>Total Size:</strong> {{totalSize}} MB</p>
 
     <b-row class="mt-3 mb-3">
       <b-col sm="12">
@@ -138,6 +138,15 @@
         ]
       }
     },
+    computed:{
+      totalSize(){
+        if(this.wadsList.length > 0){
+          return this.wadsList.reduce((acc, wad) => wad.fileSizeMB + acc, 0)
+        }else{
+          return 0
+        }
+      }
+    },
     methods:{
       async loadWads(){
 
@@ -168,9 +177,7 @@
               let stats = fs.statSync(relPath)
               let fileSizeMB = stats["size"] / 1000000.0
 
-              let indexComma = fileSizeMB.toString().indexOf('.')
-
-              newWAD.fileSizeMB = fileSizeMB.toString().substring(0, indexComma + 3)
+              newWAD.fileSizeMB = Math.round( fileSizeMB * 1e2 ) / 1e2
 
               //if commercial wad, check valid sha-1 for online play
               let comWADIndex = this.commercialWADS.findIndex(wad => wad.name == WADfiles[i].toUpperCase())
