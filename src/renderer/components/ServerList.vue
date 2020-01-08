@@ -115,6 +115,8 @@
   import masterserverparser from '@/libs/masterserverparser.js'
   import gameserverparser from '@/libs/gameserverparser.js'
 
+  import { mapActions } from 'vuex'
+
   //declare socket configs 
   let socket
 
@@ -124,10 +126,6 @@
 
   let SERVER_CHALLENGE = Buffer.from('a3db0b00', 'hex')
   let LAUNCHER_CHALLENGE = Buffer.from('021001ad510000000800000000000000', 'hex')
-
-  //launcher setup
-  let child = require('child_process').execFile
-  let executablePath = "./odamexbin/odamex.exe"
 
   export default {
     name: 'serverlist',
@@ -308,13 +306,13 @@
 
           if(this.connectPassword != null){
             let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, this.connectPassword, "-waddir", "./wads"]
-            child(executablePath, connectParam, function(err, data){})
+            this.$store.dispatch('connecttoServer', connectParam)
           }
           
         }else{
 
           let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, "-waddir", "./wads"]
-          child(executablePath, connectParam, function(err, data){})
+          this.$store.dispatch('connecttoServer', connectParam)
 
         }
 

@@ -93,6 +93,8 @@
 
 <script>
 
+  import {mapActions} from 'vuex'
+
   import path from 'path'
   import fs from 'fs'
   import util from 'util'
@@ -125,7 +127,7 @@
 
         let vueThis = this
 
-        fs.access(wadDirectory, (err) => {
+        fs.access(this.$store.state.wadPath, (err) => {
           if(err){
             vueThis.createWADDirectory()
           }else{
@@ -138,7 +140,7 @@
 
         let vueThis = this
 
-        fs.mkdir(wadDirectory, { recursive: true }, (err) => {
+        fs.mkdir(this.$store.state.wadPath, { recursive: true }, (err) => {
           if(err){
             console.error(err)
           }
@@ -151,7 +153,7 @@
 
         try{
 
-          let WADfiles = await readdirAsync(wadDirectory)
+          let WADfiles = await readdirAsync(this.$store.state.wadPath)
 
           WADfiles.forEach(wad => {
             wad = wad.toUpperCase()
@@ -175,132 +177,44 @@
           console.error(err)
         }
       },
+      checkBINDirectory(){
+
+        let vueThis = this
+
+        fs.access(this.$store.state.binPath, (err) => {
+          if(err){
+            vueThis.createBINDirectory()
+          }else{
+            vueThis.checkBINS()
+          }
+        })
+
+      },
+      createBINDirectory(){
+
+        let vueThis = this
+
+        fs.mkdir(this.$store.state.binPath, { recursive: true }, (err) => {
+          if(err){
+            console.error(err)
+          }
+
+          vueThis.checkBINS()
+        })
+
+      },
+      checkBINS(){
+
+      },
       openURLExternalBrowser(URL){
         shell.openExternal(URL)
       }
     },
     mounted(){
       this.checkWADDirectory()
+      this.checkBINDirectory()
     }
   }
 </script>
 
-<style lang="scss" scoped>
-  body {
-    font-family: 'Source Sans Pro', sans-serif;
-    overflow-x: hidden;
-  }
-
-  #odamexspawnerlogo{
-    padding-left: 10px;
-    margin-top: 15px;
-    margin-bottom: 15px;
-  }
-
-  #sidebar-wrapper {
-    background-color: #2d2d2d;
-    border-right-color: #222;
-    color: #eee;
-    min-height: 100vh;
-    margin-left: -15rem;
-    -webkit-transition: margin .25s ease-out;
-    -moz-transition: margin .25s ease-out;
-    -o-transition: margin .25s ease-out;
-    transition: margin .25s ease-out;
-    -webkit-box-shadow: 7px 10px 20px 0px rgba(0,0,0,0.1);
-    -moz-box-shadow: 7px 10px 20px 0px rgba(0,0,0,0.1);
-    box-shadow: 7px 10px 20px 0px rgba(0,0,0,0.1);
-    z-index: 999;
-    overflow-x: visible;
-
-    .sidebar-heading{
-      margin-bottom: 30px;
-    }
-
-    a:hover{
-      text-decoration: none !important;
-    }
-
-    .list-group-item{
-      color: #ddd;
-      background-color: #2d2d2d;
-      transition: all 0.2s;
-
-      &:hover{
-        background-color: #444;
-      }
-    }
-
-    .router-link-exact-active .list-group-item{
-      margin-right: -7px;
-      color: #303030;
-      background-color: #e3e7ea;
-      border-left: 6px solid #EF5435;
-      -webkit-box-shadow: 4px 6px 21px 0px rgba(0,0,0,0.18);
-      -moz-box-shadow: 4px 6px 21px 0px rgba(0,0,0,0.18);
-      box-shadow: 4px 6px 21px 0px rgba(0,0,0,0.18);
-    }
-  }
-
-  #sidebar-wrapper .sidebar-heading {
-    padding: 0.875rem 1.25rem;
-    font-size: 1.2rem;
-  }
-
-  #sidebar-wrapper .list-group {
-    width: 15rem;
-  }
-
-  .navbar{
-    background-color: #222;
-    -webkit-box-shadow: 0px 10px 20px 0px rgba(0,0,0,0.11);
-    -moz-box-shadow: 0px 10px 20px 0px rgba(0,0,0,0.11);
-    box-shadow: 0px 10px 20px 0px rgba(0,0,0,0.11);
-  }
-
-  #menu-toggle{
-    background-color: #ddd;
-
-    &:hover{
-      background-color: #c8c8c8;
-    }
-
-    span{
-      color: #333;
-    }
-  }
-
-  #page-content-wrapper {
-    background-color: #ECF1F5;
-    min-width: 100vw;
-  }
-
-  #wrapper.toggled #sidebar-wrapper {
-    margin-left: 0;
-  }
-
-  .missingwadtext{
-    font-size: 14px;
-    padding-bottom: 5px;
-    border-bottom: 3px solid #EF5435;
-  }
-
-  ul{
-    list-style-type: none;
-  }
-
-  @media (min-width: 768px) {
-    #sidebar-wrapper {
-      margin-left: 0;
-    }
-
-    #page-content-wrapper {
-      min-width: 0;
-      width: 100%;
-    }
-
-    #wrapper.toggled #sidebar-wrapper {
-      margin-left: -15rem;
-    }
-  }
-</style>
+<style lang="scss" src="./App.scss" scoped></style>

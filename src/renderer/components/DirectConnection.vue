@@ -91,10 +91,6 @@
 
   let SERVER_CHALLENGE = Buffer.from('a3db0b00', 'hex')
 
-  //launcher setup
-  let child = require('child_process').execFile
-  let executablePath = "./odamexbin/odamex.exe"
-
   export default {
     name: 'directconnection',
     data(){
@@ -174,13 +170,13 @@
 
           if(this.connectPassword != null){
             let connectParam = ["-connect", this.serverData.ip + ":" + this.serverData.port, this.connectPassword, "-waddir", "./wads"]
-            child(executablePath, connectParam, function(err, data){})
+            this.$store.dispatch('connecttoServer', connectParam)
           }
           
         }else{
 
           let connectParam = ["-connect", this.serverData.ip + ":" + this.serverData.port, "-waddir", "./wads"]
-          child(executablePath, connectParam, function(err, data){})
+          this.$store.dispatch('connecttoServer', connectParam)
 
         }
 
