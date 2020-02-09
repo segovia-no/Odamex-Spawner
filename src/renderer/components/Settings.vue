@@ -131,6 +131,7 @@
   import util from 'util'
   import https from 'https'
   import unzipper from 'unzipper'
+  import folders from '@/libs/folders.js'
 
   const readdirAsync = util.promisify(fs.readdir)
 
@@ -296,7 +297,9 @@
           }
 
           //download
-          const file = fs.createWriteStream('./downloads/' + binObject.filename)
+          let downloadPath = path.join(this.$store.state.downloadsPath, binObject.filename)
+
+          const file = fs.createWriteStream(downloadPath)
 
           const request = https.get("https://storage.googleapis.com/spawner_repo/" + binObject.url, (resp) => {  
             
@@ -315,11 +318,12 @@
 
         try{
 
-          let newBinPath = this.$store.state.binPath + '/' + binObject.foldername
+          let downloadPath = path.join(this.$store.state.downloadsPath, binObject.filename)
+          let newBinPath = path.join(this.$store.state.binPath, binObject.foldername)
 
-          this.createNewBinDir(newBinPath)
+          folders.checkDirectory(newBinPath)
 
-          fs.createReadStream('./downloads/' + binObject.filename)
+          fs.createReadStream(downloadPath)
 
           .pipe(unzipper.Extract({ path: newBinPath}))
 
@@ -338,19 +342,6 @@
         }catch(e){
           console.error(e)
         }
-      },
-      createNewBinDir(dirname){
-
-        fs.access(dirname, (err) => {
-          if(err){
-            
-            fs.mkdir(dirname, { recursive: true }, (err) => {
-              if(err){console.error(err)}
-            })
-
-          }
-        })
-
       }
     },
     async mounted(){

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "author": "Diego Segovia <dsegoviaolivares@gmail.com>",
   "description": "a modern web based odamex launcher",
-  "license": null,
+  "license": "GPLv2",
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder",

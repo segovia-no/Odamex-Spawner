@@ -10,6 +10,7 @@ import modules from './modules'
 //set paths
 const binPath = path.join('./', 'odamexbin')
 const wadPath = path.join('./', 'wads')
+const downloadsPath = path.join('./', 'downloads')
 
 //bin executable
 let child = require('child_process').execFile
@@ -32,7 +33,8 @@ export default new Vuex.Store({
   state:{
     binPath: binPath,
     defaultBinPath: 'dev-rc5-6ebc2ef5',
-    wadPath: wadPath
+    wadPath: wadPath,
+    downloadsPath: downloadsPath
   },
   mutations: {
     setDefaultBinPath(state, path){

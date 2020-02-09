@@ -100,6 +100,8 @@
   import util from 'util'
   import { shell } from 'electron'
 
+  import folders from '@/libs/folders.js'
+
   const readdirAsync = util.promisify(fs.readdir)
 
   const wadDirectory = path.join('./', 'wads')
@@ -123,32 +125,6 @@
       }
     },
     methods:{
-      checkWADDirectory(){
-
-        let vueThis = this
-
-        fs.access(this.$store.state.wadPath, (err) => {
-          if(err){
-            vueThis.createWADDirectory()
-          }else{
-            vueThis.checkCommercialWADS()
-          }
-        })
-
-      },
-      createWADDirectory(){
-
-        let vueThis = this
-
-        fs.mkdir(this.$store.state.wadPath, { recursive: true }, (err) => {
-          if(err){
-            console.error(err)
-          }
-
-          vueThis.checkCommercialWADS()
-        })
-
-      },
       async checkCommercialWADS(){
 
         try{
@@ -176,32 +152,6 @@
         }catch(err){
           console.error(err)
         }
-      },
-      checkBINDirectory(){
-
-        let vueThis = this
-
-        fs.access(this.$store.state.binPath, (err) => {
-          if(err){
-            vueThis.createBINDirectory()
-          }else{
-            vueThis.checkBINS()
-          }
-        })
-
-      },
-      createBINDirectory(){
-
-        let vueThis = this
-
-        fs.mkdir(this.$store.state.binPath, { recursive: true }, (err) => {
-          if(err){
-            console.error(err)
-          }
-
-          vueThis.checkBINS()
-        })
-
       },
       async checkBINS(){
         try{
@@ -233,8 +183,12 @@
       }
     },
     mounted(){
-      this.checkWADDirectory()
-      this.checkBINDirectory()
+      folders.checkDirectory(this.$store.state.wadPath)
+      folders.checkDirectory(this.$store.state.binPath)
+      folders.checkDirectory(this.$store.state.downloadsPath)
+
+      this.checkCommercialWADS()
+      this.checkBINS()
     }
   }
 </script>
