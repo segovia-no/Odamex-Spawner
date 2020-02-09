@@ -2,6 +2,11 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import path from 'path'
 import VuexPersist from 'vuex-persistfile'
+import fs from 'fs'
+import util from 'util'
+import {lstatSync} from 'fs'
+
+const readdirAsync = util.promisify(fs.readdir)
 
 import {createPersistedState} from 'vuex-electron'
 
@@ -34,11 +39,29 @@ export default new Vuex.Store({
     binPath: binPath,
     defaultBinPath: 'dev-rc5-6ebc2ef5',
     wadPath: wadPath,
-    downloadsPath: downloadsPath
+    downloadsPath: downloadsPath,
+    installedBins: []
   },
   mutations: {
     setDefaultBinPath(state, path){
-      state.defaultBinPath == path
+      state.defaultBinPath = path
+    },
+    setBINsList(state){
+
+      state.installedBins = []
+
+      fs.readdir(state.binPath, (err, bin) => {
+        bin.forEach(binDir => {
+
+          let relPath = path.join(state.binPath, binDir)
+
+          if(lstatSync(relPath).isDirectory()){
+            state.installedBins.push(binDir)
+          }
+
+        })
+      })
+
     }
   },
   actions: {
@@ -50,6 +73,9 @@ export default new Vuex.Store({
     },
     setDefaultBIN(context, path){
       context.commit('setDefaultBinPath', path)
+    },
+    refreshBINSList(context){
+      context.commit('setBINsList')
     }
   }
 })

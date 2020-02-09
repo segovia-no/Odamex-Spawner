@@ -13,11 +13,11 @@
             <b-tab active>
 
               <template v-slot:title>
-                <font-awesome-icon icon="download" fixed-width /> Client versions
+                <font-awesome-icon icon="code-branch" fixed-width /> Client versions
               </template>
               
               <b-card-title>
-                <font-awesome-icon icon="download" fixed-width /> Client versions
+                <font-awesome-icon icon="code-branch" fixed-width /> Client versions
               </b-card-title>
 
               <b-card-sub-title>
@@ -336,6 +336,8 @@
               this.$set(this.mergedBins[indexFound], '_isDownloading', false)
               this.$set(this.mergedBins[indexFound], 'downloaded', true)
             }
+
+            this.$store.dispatch('refreshBINSList') //refresh select version in navbar
 
           })
 

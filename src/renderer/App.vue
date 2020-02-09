@@ -32,30 +32,34 @@
           </router-link>
         </div>
       </div>
-
-      <!-- Page Content -->
+  
       <div id="page-content-wrapper">
 
-        <nav class="navbar navbar-expand-lg border-bottom">
+        <!-- Navbar -->
+        <b-navbar class="border-bottom" type="dark">
+
           <button class="btn" id="menu-toggle" @click="toggledSidebar = !toggledSidebar"><font-awesome-icon icon="bars" /></button>
 
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  About
-                </a>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                  <a class="dropdown-item" href="#">Action</a>
-                  <a class="dropdown-item" href="#">Another action</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#">Something else here</a>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </nav>
+          <b-navbar-nav class="ml-auto">
 
+            <b-nav-item-dropdown right>
+
+              <template v-slot:button-content>
+                <em><font-awesome-icon icon="code-branch" /> <strong>Version:</strong> {{getSelectedOdamexVersion}}</em>
+              </template>
+
+              <b-dropdown-item v-for="(bin, index) in this.$store.state.installedBins" @click="setDefaultBIN(bin)" :index="index">
+                {{bin}}
+              </b-dropdown-item>
+
+            </b-nav-item-dropdown>
+
+          </b-navbar-nav>
+
+        </b-navbar>
+
+
+        <!-- Page content -->
         <div id="content-wrapper" class="container-fluid">
           <router-view></router-view>
         </div>
@@ -82,7 +86,7 @@
 
       </b-list-group>
 
-      <template v-slot:modal-footer="{ ok}">
+      <template v-slot:modal-footer="{ok}">
         <b-button variant="primary" @click="ok()"> Ok</b-button>
       </template>
     </b-modal>
@@ -99,7 +103,7 @@
   import fs from 'fs'
   import util from 'util'
   import { shell } from 'electron'
-
+  import {lstatSync} from 'fs'
   import folders from '@/libs/folders.js'
 
   const readdirAsync = util.promisify(fs.readdir)
@@ -107,7 +111,12 @@
   const wadDirectory = path.join('./', 'wads')
 
   export default {
-    name: 'odamexlauncher',
+    name: 'odamexspawner',
+    computed:{
+      getSelectedOdamexVersion(){
+        return this.$store.state.defaultBinPath
+      }
+    },
     data(){
       return{
         toggledSidebar: false,
@@ -178,6 +187,9 @@
           console.log(err)
         }
       },
+      setDefaultBIN(binpath){
+        this.$store.dispatch('setDefaultBIN', binpath)
+      },
       openURLExternalBrowser(URL){
         shell.openExternal(URL)
       }
@@ -189,6 +201,7 @@
 
       this.checkCommercialWADS()
       this.checkBINS()
+      this.$store.dispatch('refreshBINSList')
     }
   }
 </script>
