@@ -33,8 +33,17 @@
                     <h5 class="mb-1">{{bin.name}}</h5>
 
                     <b-button-group size="sm">
-                      <b-button v-if="!bin.downloaded" variant="primary"><font-awesome-icon icon="download" fixed-width /> Download</b-button>
+
+                      <b-button v-if="!bin.downloaded" :disabled="(bin._isDownloading) ? bin._isDownloading : false" @click="downloadBin(bin)" variant="primary">
+
+                        <span v-if="(bin._isDownloading) ? bin._isDownloading : false"><b-spinner small label="Downloading"></b-spinner> Downloading</span>
+
+                        <span v-else><font-awesome-icon icon="download" fixed-width /> Download</span>
+                        
+                      </b-button>
+
                       <b-button v-if="bin.downloaded" variant="danger"><font-awesome-icon icon="times" fixed-width /> Delete</b-button>
+
                     </b-button-group>
 
                   </div>
@@ -120,8 +129,9 @@
   import fs from 'fs'
   import {lstatSync} from 'fs'
   import util from 'util'
+  import https from 'https'
+  import unzipper from 'unzipper'
 
-  const binPath = path.join('./', 'odamexbin')
   const readdirAsync = util.promisify(fs.readdir)
 
   let parseXML = require('xml2js').parseString
@@ -160,7 +170,9 @@
 
                     this.repoBins.push({
                       name: 'Odamex ' + filepath.replace('_win64.zip', ''),
-                      url: filepath,
+                      filename: filepath,
+                      foldername: filepath.replace('_win64.zip', ''),
+                      url: path,
                       kind: 'official'
                     })
 
@@ -168,7 +180,9 @@
 
                     this.repoBins.push({
                       name: 'Odamex ' + filepath.replace('macos.zip', ''),
-                      url: filepath,
+                      filename: filepath,
+                      foldername: filepath.replace('macos.zip', ''),
+                      url: path,
                       kind: 'official'
                     })
 
@@ -186,7 +200,9 @@
 
                     this.repoBins.push({
                       name: 'Odamex ' + filepath.replace('_win64.zip', ''),
-                      url: filepath,
+                      filename: filepath,
+                      foldername: filepath.replace('_win64.zip', ''),
+                      url: path,
                       kind: 'experimental'
                     })
 
@@ -194,7 +210,9 @@
 
                     this.repoBins.push({
                       name: 'Odamex ' + filepath.replace('macos.zip', ''),
-                      url: filepath,
+                      filename: filepath,
+                      foldername: filepath.replace('macos.zip', ''),
+                      url: path,
                       kind: 'experimental'
                     })
 
@@ -214,13 +232,13 @@
       async listInstalledBins(){
         try{
 
-          let binDirs = await readdirAsync(binPath)
+          let binDirs = await readdirAsync(this.$store.state.binPath)
 
           this.installedBins = []
 
           binDirs.forEach(binDir => {
 
-            let relPath = path.join(binPath, binDir)
+            let relPath = path.join(this.$store.state.binPath, binDir)
 
             if(lstatSync(relPath).isDirectory()){
               this.installedBins.push({
@@ -260,12 +278,79 @@
 
           }else{
 
-            this.mergedBins[indexFound] = Object.assign(this.mergedBins[indexFound], repo)
+            this.mergedBins[indexFound] = Object.assign(this.mergedBins[indexFound], repo, {_isDownloading : false})
 
           }
 
         })
         
+      },
+      async downloadBin(binObject){
+        try{
+
+          //set download state
+          let indexFound = this.mergedBins.findIndex(binFromList => binFromList.url == binObject.url)
+
+          if(indexFound != -1){
+            this.$set(this.mergedBins[indexFound], '_isDownloading', true)
+          }
+
+          //download
+          const file = fs.createWriteStream('./downloads/' + binObject.filename)
+
+          const request = https.get("https://storage.googleapis.com/spawner_repo/" + binObject.url, (resp) => {  
+            
+            resp.pipe(file) //save to file
+            .on('finish', () => this.extractBin(binObject))
+
+          })
+
+        }catch(e){
+          console.error(e)
+        }
+      },
+      async extractBin(binObject){
+
+        let vueThis = this
+
+        try{
+
+          let newBinPath = this.$store.state.binPath + '/' + binObject.foldername
+
+          this.createNewBinDir(newBinPath)
+
+          fs.createReadStream('./downloads/' + binObject.filename)
+
+          .pipe(unzipper.Extract({ path: newBinPath}))
+
+          .on('close', () => {
+
+            //set download state
+            let indexFound = this.mergedBins.findIndex(binFromList => binFromList.url == binObject.url)
+
+            if(indexFound != -1){
+              this.$set(this.mergedBins[indexFound], '_isDownloading', false)
+              this.$set(this.mergedBins[indexFound], 'downloaded', true)
+            }
+
+          })
+
+        }catch(e){
+          console.error(e)
+        }
+      },
+      createNewBinDir(dirname){
+
+        fs.access(dirname, (err) => {
+          if(err){
+            
+            fs.mkdir(dirname, { recursive: true }, (err) => {
+              if(err){console.error(err)}
+            })
+
+          }
+        })
+
       }
     },
     async mounted(){

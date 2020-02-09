@@ -10,5 +10,6 @@ thumbs.db
 !.gitkeep
 
 wads/*
+downloads/*
 odamexbin
 *.dmp

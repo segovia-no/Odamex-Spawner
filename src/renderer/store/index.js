@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import path from 'path'
 import VuexPersist from 'vuex-persistfile'
 
-import { createPersistedState} from 'vuex-electron'
+import {createPersistedState} from 'vuex-electron'
 
 import modules from './modules'
 

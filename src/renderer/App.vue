@@ -203,8 +203,30 @@
         })
 
       },
-      checkBINS(){
+      async checkBINS(){
+        try{
 
+          let binDirs = await readdirAsync(this.$store.state.binPath)
+
+          this.installedBins = []
+
+          binDirs.forEach(binDir => {
+
+            let relPath = path.join(this.$store.state.binPath, binDir)
+
+            if(lstatSync(relPath).isDirectory()){
+              this.installedBins.push({
+                name: 'Odamex ' + binDir,
+                filepath: relPath,
+                downloaded: true
+              })
+            }
+
+          })
+
+        }catch(err){
+          console.log(err)
+        }
       },
       openURLExternalBrowser(URL){
         shell.openExternal(URL)

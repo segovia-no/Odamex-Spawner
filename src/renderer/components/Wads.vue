@@ -143,7 +143,7 @@
     computed:{
       totalSize(){
         if(this.wadsList.length > 0){
-          return this.wadsList.reduce((acc, wad) => wad.fileSizeMB + acc, 0)
+          return this.wadsList.reduce((acc, wad) => wad.fileSizeMB + acc, 0).toFixed(2)
         }else{
           return 0
         }
