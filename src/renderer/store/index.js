@@ -46,6 +46,9 @@ export default new Vuex.Store({
     setDefaultBinPath(state, path){
       state.defaultBinPath = path
     },
+    setWADFolder(state, path){
+      state.wadPath = path
+    },
     setBINsList(state){
 
       state.installedBins = []
@@ -73,6 +76,9 @@ export default new Vuex.Store({
     },
     setDefaultBIN(context, path){
       context.commit('setDefaultBinPath', path)
+    },
+    setDefaultWADsFolder(context, path){
+      context.commit('setWADFolder', path)
     },
     refreshBINSList(context){
       context.commit('setBINsList')

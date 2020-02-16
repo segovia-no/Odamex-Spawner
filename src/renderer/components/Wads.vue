@@ -100,7 +100,6 @@
 
   const { dialog } = require('electron').remote
 
-  const directoryPath = path.join('./', 'wads')
   const readdirAsync = util.promisify(fs.readdir)
 
   export default {
@@ -156,7 +155,7 @@
 
           this.wadsList = []
         
-          let WADfiles = await readdirAsync(directoryPath) //read from ./wads
+          let WADfiles = await readdirAsync(this.$store.state.wadPath)
           
           for(let i = 0; i < WADfiles.length; i++){
 
@@ -228,7 +227,7 @@
 
               if(wadsinLibrary.indexOf(filename.toUpperCase()) == -1){ //copy wads that are not in library
 
-                fs.copyFile(file, path.join(directoryPath, filename), (err) => {
+                fs.copyFile(file, path.join(this.$store.state.wadPath, filename), (err) => {
 
                   if(err){
                     console.log('error importing ' + filename)
