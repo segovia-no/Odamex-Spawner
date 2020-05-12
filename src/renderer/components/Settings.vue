@@ -61,6 +61,8 @@
               <b-card-sub-title>
                 Adjust your resolution, visual preset and control settings
               </b-card-sub-title>
+
+              <GameSettings />
             
             </b-tab>
 
@@ -113,6 +115,7 @@
 
   import ClientVersions from './settings/ClientVersions'
   import PlayerSettings from './settings/PlayerSettings'
+  import GameSettings from './settings/GameSettings'
   import WADSSettings from './settings/WADSSettings'
   
   export default {
@@ -120,6 +123,7 @@
     components:{
       ClientVersions,
       PlayerSettings,
+      GameSettings,
       WADSSettings
     }
   }

@@ -305,13 +305,13 @@
         if(this.selectedServer.passworded){
 
           if(this.connectPassword != null){
-            let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, this.connectPassword, "-waddir", "./wads"]
+            let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, this.connectPassword]
             this.$store.dispatch('connecttoServer', connectParam)
           }
           
         }else{
 
-          let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port, "-waddir", "./wads"]
+          let connectParam = ["-connect", this.selectedServer.ip + ":" + this.selectedServer.port]
           this.$store.dispatch('connecttoServer', connectParam)
 
         }

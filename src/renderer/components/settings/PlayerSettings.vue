@@ -1,32 +1,44 @@
 <template>
 
-  <div class="mt-3">
+  <div v-if="!isLoading" class="mt-3">
 
     <b-input-group size="sm" prepend="Player name" class="mb-2">
-      <b-form-input v-model="playername"></b-form-input>
+      <b-form-input v-model="playerSettings.cl_name"></b-form-input>
     </b-input-group>
+
 
     <b-input-group size="sm" prepend="Color" class="mb-2">
-      <b-form-input v-model="color" type="color"></b-form-input>
+      <b-form-input v-model="playerSettings.cl_color" type="color"></b-form-input>
     </b-input-group>
+
 
     <b-input-group size="sm" prepend="Preferred Team" class="mb-2">
-      <b-form-select v-model="team" :options="teamOptions"></b-form-select>
+      <b-form-select v-model="playerSettings.cl_team" :options="teamOptions"></b-form-select>
     </b-input-group>
+
 
     <b-input-group size="sm" prepend="Gender" class="mb-2">
-      <b-form-select v-model="gender" :options="genderOptions"></b-form-select>
+      <b-form-select v-model="playerSettings.cl_gender" :options="genderOptions"></b-form-select>
     </b-input-group>
 
-    <b-input-group size="sm" prepend="Mouse sensitivity" class="mb-2">
 
-      <b-form-input v-model="mouseSensitivity" type="range" min="0.001" max="2.5" step="0.001"></b-form-input>
+    <b-input-group size="sm" prepend="Mouse sensitivity (ZDoom)" class="mb-2">
 
-      <b-form-input v-model="mouseSensitivity"></b-form-input>
+      <b-form-input v-model="playerSettings.mouse_sensitivity" type="range" min="0.001" max="2.5" step="0.001"></b-form-input>
+
+      <b-form-input v-model="playerSettings.mouse_sensitivity"></b-form-input>
 
     </b-input-group>
 
-    <b-button variant="success" class="float-right mt-3 mb-4"><font-awesome-icon icon="save" fixed-width /> Save settings</b-button>
+
+    <b-button @click="saveSettings()" variant="success" class="float-right mt-3 mb-4"><font-awesome-icon icon="save" fixed-width /> Save settings</b-button>
+
+  </div>
+
+  <div v-else class="text-center my-2">
+
+    <b-spinner class="align-middle"></b-spinner>
+    <strong>Loading</strong>
 
   </div>
   
@@ -34,18 +46,20 @@
 
 <script>
 
-import fs from 'fs'
-import readline from 'readline'
+import binConfigManager from '@/libs/binconfigmanager.js'
 
 export default {
   name: 'playersettings',
   data(){
     return {
-      playername: 'Player',
-      color: '#40cf00',
-      team: 'blue',
-      gender: 'male',
-      mouseSensitivity: 1.5,
+      isLoading: true,
+      playerSettings: {
+        cl_name: 'Player',
+        cl_color: '#40cf00',
+        cl_team: 'blue',
+        cl_gender: 'male',
+        mouse_sensitivity: 1.5,
+      },
       teamOptions: [
         {text: 'Red', value: 'red'},
         {text: 'Blue', value: 'blue'}
@@ -59,54 +73,50 @@ export default {
   },
   methods:{
 
-    readPlayerSettingsFromCFGFile(){
+    async readPlayerSettingsFromCFGFile(){
+      try{
 
-      const rl = readline.createInterface({
-        input: fs.createReadStream('./odamexbinconfig.cfg'),
-        crlfDelay: Infinity
-      })
+        let loadedConfigs = await binConfigManager.readPlayerSettings()
 
-      rl.on('line', (line) => {
+        Object.assign(this.playerSettings, loadedConfigs)
 
-        let arrayArgs = line.split(/ "|" "|" |"$/)
+        this.isLoading = false
 
-        if(arrayArgs.length < 3){
-          return
-        }
-
-        if(arrayArgs[0].toLowerCase() == 'set'){
-
-          switch (arrayArgs[1]) {
-
-            case 'cl_name':
-              this.playername = arrayArgs[2]
-              break
-
-            case 'cl_color':
-              this.color = '#' + arrayArgs[2].replace(/ /g, '')
-              break
-
-            case 'cl_team':
-              this.team = arrayArgs[2]
-              break
-
-            case 'cl_gender':
-              this.gender = arrayArgs[2]
-              break
-
-            case 'mouse_sensitivity':
-              this.mouseSensitivity = arrayArgs[2]
-              break
-          }
-
-        }
-
-      })
-
+      }catch(err){
+        console.log(err)
+      }
     },
 
-    saveSettings(){
+    async saveSettings(){
+      try{
 
+        let formattedColor = this.playerSettings.cl_color.replace('#', '')
+        formattedColor = formattedColor.match(/.{1,2}/g)
+        formattedColor = formattedColor.join(' ')
+
+        let parsedSettings = {
+          cl_name: this.playerSettings.cl_name,
+          cl_color: formattedColor,
+          cl_team: this.playerSettings.cl_team,
+          cl_gender: this.playerSettings.cl_gender,
+          mouse_sensitivity: this.playerSettings.mouse_sensitivity,
+          mouse_type: 1
+        }
+
+        await binConfigManager.saveCFG(parsedSettings)
+
+        await this.readPlayerSettingsFromCFGFile()
+
+        this.$bvToast.toast(`Settings Saved`, {
+          title: 'Odamex Spawner',
+          autoHideDelay: 3000,
+          appendToast: true,
+          variant: 'success'
+        })
+
+      }catch(err){
+        console.log(err)
+      }
     }
 
   },

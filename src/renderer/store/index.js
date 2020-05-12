@@ -70,8 +70,17 @@ export default new Vuex.Store({
   actions: {
     connecttoServer(context, params){
 
+      //settings binding to params
+      let finalParams = params
+
+      finalParams.push("-waddir")
+      finalParams.push(context.state.wadPath)
+
+      finalParams.push("-config")
+      finalParams.push("./odamexbinconfig.cfg")
+
       let fullBinPath = path.join(context.state.binPath, context.state.defaultBinPath, 'odamex.exe')
-      child(fullBinPath, params, function(err, data){})
+      child(fullBinPath, finalParams, function(err, data){})
 
     },
     setDefaultBIN(context, path){
