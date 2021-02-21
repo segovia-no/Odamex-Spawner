@@ -31,6 +31,13 @@
             <a href="#" class="list-group-item list-group-item-action"><font-awesome-icon icon="code" fixed-width class="mr-1" /> Development</a>
           </router-link>
         </div>
+
+        <div id="social">
+            <img class="mr-2 pointer" @click="openURLExternalBrowser('https://discord.gg/aMUzcZE')" src="@/assets/discord.png" alt="Discord" width="28">
+            <img class="mr-2 pointer" @click="openURLExternalBrowser('https://twitter.com/Odamex')" src="@/assets/twitter.png" alt="Twitter" width="25">
+            <img class="pointer" @click="openURLExternalBrowser('https://steamcommunity.com/groups/odamex')" src="@/assets/steam.png" alt="Steam" width="25">
+        </div>
+
       </div>
   
       <div id="page-content-wrapper">
