@@ -9,6 +9,17 @@ body {
   margin-bottom: 15px;
 }
 
+div#social{
+  position: absolute;
+  bottom: 0;
+  margin-left: 4rem;
+  margin-bottom: 1rem;
+}
+
+.pointer{
+  cursor: pointer;
+}
+
 #sidebar-wrapper {
   background-color: #2d2d2d;
   border-right-color: #222;
