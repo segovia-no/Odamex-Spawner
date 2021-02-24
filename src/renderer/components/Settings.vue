@@ -85,6 +85,24 @@
             
             </b-tab>
 
+            <!-- Demo Settings -->
+            <b-tab>
+
+              <template v-slot:title>
+                <font-awesome-icon icon="box-open" fixed-width /> Demo Settings
+              </template>
+
+              <b-card-title>
+                <font-awesome-icon icon="box-open" fixed-width /> Demo Settings
+              </b-card-title>
+
+              <b-card-sub-title>
+                Configure demo settings
+              </b-card-sub-title>
+
+              <DemoSettings />
+
+            </b-tab>
             <!-- Server/repo Settings -->
             <b-tab>
 
@@ -117,6 +135,7 @@
   import PlayerSettings from './settings/PlayerSettings'
   import GameSettings from './settings/GameSettings'
   import WADSSettings from './settings/WADSSettings'
+  import DemoSettings from './settings/DemoSettings'
   
   export default {
     name: 'settings',
@@ -124,7 +143,8 @@
       ClientVersions,
       PlayerSettings,
       GameSettings,
-      WADSSettings
+      WADSSettings,
+      DemoSettings
     }
   }
 </script>

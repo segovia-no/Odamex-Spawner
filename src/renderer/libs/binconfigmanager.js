@@ -126,6 +126,56 @@ let binConfigManager = {
     })
   },
 
+  readDemoSettings: () => {
+    return new Promise((resolve, reject) => {
+
+      let demoSettings = {
+        cl_autorecord: false,
+        cl_splitnetdemos: false,
+        cl_netdemoname: 'Odamex_%g_%d_%t_%w_%m'
+      }
+
+      const rl = readline.createInterface({
+        input: fs.createReadStream('./odamexbinconfig.cfg'),
+        crlfDelay: Infinity
+      })
+
+      rl.on('line', (line) => {
+
+        let arrayArgs = line.split(/ "|" "|" |"$/)
+
+        if (arrayArgs.length < 3) {
+          return
+        }
+
+        if (arrayArgs[0].toLowerCase() == 'set') {
+
+          switch (arrayArgs[1]) {
+
+            case 'cl_autorecord':
+              demoSettings.cl_autorecord = (arrayArgs[2] === "1") ? true : false
+              break
+
+            case 'cl_splitnetdemos':
+              demoSettings.cl_splitnetdemos = (arrayArgs[2] === "1") ? true : false
+              break
+
+            case 'cl_netdemoname':
+              demoSettings.cl_netdemoname = arrayArgs[2]
+              break
+
+          }
+
+        }
+
+      })
+
+      rl.on('close', () => {  resolve(demoSettings)  })
+
+      rl.on('error', () => {  reject()  })
+
+    })
+  },
 
   saveCFG: (confObj) => {
     return new Promise(function (resolve, reject) {
