@@ -21,6 +21,9 @@
           <router-link :to="'/wads'">
             <a href="#" class="list-group-item list-group-item-action"><font-awesome-icon icon="box-open" fixed-width class="mr-1" /> WAD's</a>
           </router-link>
+          <router-link :to="'/demos'">
+            <a href="#" class="list-group-item list-group-item-action"><font-awesome-icon icon="film" fixed-width class="mr-1" /> Demos</a>
+          </router-link>
           <router-link :to="'/settings'">
             <a href="#" class="list-group-item list-group-item-action"><font-awesome-icon icon="cogs" fixed-width class="mr-1" /> Settings</a>
           </router-link>
