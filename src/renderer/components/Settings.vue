@@ -89,11 +89,11 @@
             <b-tab>
 
               <template v-slot:title>
-                <font-awesome-icon icon="box-open" fixed-width /> Demo Settings
+                <font-awesome-icon icon="film" fixed-width /> Demo Settings
               </template>
 
               <b-card-title>
-                <font-awesome-icon icon="box-open" fixed-width /> Demo Settings
+                <font-awesome-icon icon="film" fixed-width /> Demo Settings
               </b-card-title>
 
               <b-card-sub-title>
