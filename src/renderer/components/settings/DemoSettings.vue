@@ -2,6 +2,13 @@
 
   <div v-if="!isLoading" class="mt-3">
 
+    <b-input-group prepend="Demos Folder" size="sm" class="mt-3 mb-2">
+      <b-form-input readonly :value="getDemosFolder"/>
+      <b-input-group-append>
+        <b-button @click="openBrowseFolderWindow()" variant="primary">Browse</b-button>
+      </b-input-group-append>
+    </b-input-group>
+
     <b-input-group size="sm" prepend="Autorecord Demos" class="mb-2">
       <b-form-select v-model="demoSettings.cl_autorecord" :options="autorecordOptions"></b-form-select>
     </b-input-group>
@@ -10,7 +17,7 @@
       <b-form-select v-model="demoSettings.cl_splitnetdemos" :options="splitOptions"></b-form-select>
     </b-input-group>
 
-    <b-input-group size="sm" prepend="Demo name" class="mb-2">
+    <b-input-group size="sm" prepend="Demo Format" class="mb-2">
       <b-form-input v-model="demoSettings.cl_netdemoname"></b-form-input>
     </b-input-group>
 
@@ -31,6 +38,8 @@
 <script>
 
 import binConfigManager from '@/libs/binconfigmanager.js'
+
+const { dialog } = require('electron').remote
 
 export default {
   name: 'demosettings',
@@ -53,6 +62,13 @@ export default {
     }
   },
   methods:{
+    async openBrowseFolderWindow(){
+
+      let chosenPath = await dialog.showOpenDialog({properties: ['openDirectory']})
+
+      this.$store.dispatch('setDefaultDemosFolder', chosenPath.filePaths[0])
+
+    },
 
     async readDemoSettingsFromCFGFile(){
       try{
@@ -93,6 +109,13 @@ export default {
       }
     }
 
+  },
+  computed:{
+
+    getDemosFolder: function(){
+      return this.$store.state.demoPath
+    }
+    
   },
   mounted(){
     this.readDemoSettingsFromCFGFile()

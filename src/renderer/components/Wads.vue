@@ -159,7 +159,7 @@
           
           for(let i = 0; i < WADfiles.length; i++){
 
-            let relPath = path.join('./', 'wads', '/', WADfiles[i])
+            let relPath = path.join(this.$store.state.wadPath, '/', WADfiles[i])
 
             //get only .wad extension
             let extension = path.extname(relPath)

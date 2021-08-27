@@ -3,18 +3,17 @@
     
     <h2 class="pageTitle">Odamex Demos 
       <b-button size="sm" variant="primary" @click="retrieveDemos()" class="float-right mt-1"><font-awesome-icon icon="sync" /> Refresh</b-button>
-      <b-button @click="importWads()" size="sm" variant="success" class="float-right mt-1 mr-1"><font-awesome-icon icon="heart" /> Favorites</b-button>
       </h2>
 
     <p>Demo count: {{demoList.length}}</p>
 
-    <b-input-group class="demoFilterInput" :class="{filtering: demoListfilter}" size="sm">
+    <b-input-group class="demoFilterInput" :class="{filtering: demoListFilter}" size="sm">
 
       <template v-slot:prepend>
         <b-input-group-text><font-awesome-icon icon="filter" />Filter</b-input-group-text>
       </template>
 
-      <b-form-input v-model="demolistfilter"></b-form-input>
+      <b-form-input v-model="demoListFilter"></b-form-input>
 
     </b-input-group>
 
@@ -28,7 +27,7 @@
       sticky-header="550px"
       :items="demoList" 
       :fields="demoFields"
-      :filter="demoListfilter"
+      :filter="demoListFilter"
       :busy="(tableState != 'ok') ? true : false"
       selectable
       select-mode="single"
@@ -36,9 +35,8 @@
       > 
 
       <template v-slot:cell(name)="data">
-        {{data.item.demoname}}
+        {{ data.item.demoname }}
       </template>
-
       
       <template v-slot:row-details="row">
         <b-card>
@@ -82,16 +80,15 @@
   import demoparser from '@/libs/demoparser.js'
 
   export default {
-    name: 'demoList',
+    name: 'demolist',
     data(){
       return{
         demoList: [],
         demoListFilter: null,
-        tablestate: 'loading',
+        tableState: 'loading',
         lastselectedDemoIndex: null,
         selectedDemo: {
-          demoname: '',
-          favorite: false
+          demoname: ''
         },
         demoFields: [
         {
@@ -112,13 +109,11 @@
         this.$electron.shell.openExternal(link)
       },
       async retrieveDemos(){
+
         this.tableState = 'loading'
         this.demoList = []
 
-        //let allDemos = await demoparser.getDemosfromPath('/applications/odamex/wads')
-        this.demoList = await demoparser.getDemosfromPath('/users/jess/.odamex/demos')
-
-        console.log(this.demoList)
+        this.demoList = await demoparser.getDemosfromPath(this.$store.state.demoPath)
         this.tableState = (this.demoList.length > 0) ? 'ok' : 'loading'
            
       },
@@ -126,7 +121,7 @@
 
         if(demo.length > 0){
 
-          let newDemoIndex = this.demoList.findIndex(srv => srv.demoname === demo[0].demoname)
+          let newDemoIndex = this.demoList.findIndex(d => d.demoname === demo[0].demoname)
 
           this.connectPassword = null
           this.selectedDemo = demo[0]
@@ -143,9 +138,9 @@
         
       },
       playDemo(){
-        let connectParam = ["-netplay", "/users/jess/.odamex/demos/" + this.selectedDemo.demoname]
+        let connectParam = ["-netplay", this.$store.state.demoPath + "/" + this.selectedDemo.demoname]
         this.$store.dispatch('connecttoServer', connectParam)
-      }
+      },
     },
     mounted(){
       this.retrieveDemos()

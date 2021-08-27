@@ -1,30 +1,34 @@
 let demoparser = {
 
-  getDemosfromPath: (demoPath) => {
+  getDemosfromPath: async (demoPath) => {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
-    // This process parses demos in the demos folder
+    // This process returns odamex demos from the Demo path
     /////////////////////////////////////////////////////////////////////////////////////////////
 
     const fs = require('fs')
-    
+    const path = require('path');
+
+    let demos = []
+
     try {
-      //Data definition
-      let demos = []
 
-      const files = fs.readdirSync(demoPath);
-
+      const files = await fs.promises.readdir(demoPath)
+      
       for (const file of files)
-        demos.push({demoname: file, favorite: false})
+
+        if (path.extname(file) == ".odd")
+          demos.push({demoname: String(file)})
+
+    } catch (err) {
+
+      console.error(err)
+
+    }
 
       return demos
 
-    }catch (e) {
-      console.error(e);
-      return False
     }
-
-  },
 
 }
 
