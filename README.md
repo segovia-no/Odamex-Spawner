@@ -20,13 +20,10 @@ npm run build
 ## Authors
 
 * **Diego Segovia** - *Initial work* - [segovia-no](https://github.com/segovia-no)
+* **wolfeman95** - [wolfeman95](https://github.com/wolfeman95)
 
 ## License
 Odamex Spawner is released under the GNU General Public License v2. Please read [`LICENSE`](LICENSE) for further details regarding the license.
-
-### Special thanks to
-
-* **wolfeman95** - [wolfeman95](https://github.com/wolfeman95)
 
 ---
 
