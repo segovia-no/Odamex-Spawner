@@ -15,6 +15,7 @@ import modules from './modules'
 //set paths
 const binPath = path.join('./', 'odamexbin')
 const wadPath = path.join('./', 'wads')
+const demoPath = path.join('./', 'demos')
 const downloadsPath = path.join('./', 'downloads')
 
 //bin executable
@@ -39,6 +40,7 @@ export default new Vuex.Store({
     binPath: binPath,
     defaultBinPath: 'dev-rc5-6ebc2ef5',
     wadPath: wadPath,
+    demoPath: demoPath,
     downloadsPath: downloadsPath,
     installedBins: []
   },
@@ -48,6 +50,9 @@ export default new Vuex.Store({
     },
     setWADFolder(state, path){
       state.wadPath = path
+    },
+    setDemoFolder(state, path){
+      state.demoPath = path
     },
     setBINsList(state){
 
@@ -64,7 +69,7 @@ export default new Vuex.Store({
 
         })
       })
-
+    
     }
   },
   actions: {
@@ -89,8 +94,11 @@ export default new Vuex.Store({
     setDefaultWADsFolder(context, path){
       context.commit('setWADFolder', path)
     },
+    setDefaultDemosFolder(context, path){
+      context.commit('setDemoFolder', path)
+    },
     refreshBINSList(context){
       context.commit('setBINsList')
-    }
+    } 
   }
 })

@@ -27,17 +27,11 @@ export default {
     
   },
   methods:{
-    openBrowseFolderWindow(){
+    async openBrowseFolderWindow(){
 
-      dialog.showOpenDialog({properties: ['openDirectory']}, (folder) => {
-
-        if(typeof folder[0] == 'string'){
-
-          this.$store.dispatch('setDefaultWADsFolder', folder[0])
-
-        }
-
-      })
+      let chosenPath = await dialog.showOpenDialog({properties: ['openDirectory']})
+        
+      this.$store.dispatch('setDefaultWADsFolder', chosenPath.filePaths[0])
 
     }
   }
