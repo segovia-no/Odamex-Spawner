@@ -65,8 +65,10 @@ export default {
     async openBrowseFolderWindow(){
 
       let chosenPath = await dialog.showOpenDialog({properties: ['openDirectory']})
-
-      this.$store.dispatch('setDefaultDemosFolder', chosenPath.filePaths[0])
+  
+      if (!chosenPath.canceled){
+        this.$store.dispatch('setDefaultDemosFolder', chosenPath.filePaths[0])
+      }
 
     },
 

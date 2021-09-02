@@ -3,7 +3,7 @@
     
     <h2 class="pageTitle">Odamex Demos 
       <b-button size="sm" variant="primary" @click="retrieveDemos()" class="float-right mt-1"><font-awesome-icon icon="sync" /> Refresh</b-button>
-      </h2>
+    </h2>
 
     <p>Demo count: {{demoList.length}}</p>
 
@@ -114,7 +114,7 @@
         this.demoList = []
 
         this.demoList = await demoparser.getDemosfromPath(this.$store.state.demoPath)
-        this.tableState = (this.demoList.length > 0) ? 'ok' : 'loading'
+        this.tableState = 'ok'
            
       },
       showDemoInfo(demo){

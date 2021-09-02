@@ -15,7 +15,7 @@ import modules from './modules'
 //set paths
 const binPath = path.join('./', 'odamexbin')
 const wadPath = path.join('./', 'wads')
-const demoPath = path.join('./', 'demos')
+const demoPath = path.resolve('demos')
 const downloadsPath = path.join('./', 'downloads')
 
 //bin executable

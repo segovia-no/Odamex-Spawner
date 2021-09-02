@@ -10,6 +10,7 @@ let demoparser = {
     const path = require('path');
 
     let demos = []
+    let defaultPath = path.resolve('demos')
 
     try {
 
@@ -22,7 +23,12 @@ let demoparser = {
 
     } catch (err) {
 
-      console.error(err)
+      //create the default demoPath dir if it does not exist
+      if(err.message.includes("no such file or directory, scandir '" + defaultPath)){
+        fs.promises.mkdir(defaultPath)
+      } else {
+        console.error(err)
+      }
 
     }
 
