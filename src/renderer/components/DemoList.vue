@@ -5,7 +5,7 @@
       <b-button size="sm" variant="primary" @click="retrieveDemos()" class="float-right mt-1"><font-awesome-icon icon="sync" /> Refresh</b-button>
     </h2>
 
-    <p>Demo count: {{demoList.length}}</p>
+    <p><strong>Demo count:</strong> {{demoList.length}} | <strong>Total Size:</strong> {{totalSize}} MB</p>
 
     <b-input-group class="demoFilterInput" :class="{filtering: demoListFilter}" size="sm">
 
@@ -101,6 +101,15 @@
           cl_autorecord: false,
           cl_splitnetdemos: false,
           cl_netdemoname: 'Odamex_%g_%d_%t_%w_%m'
+        }
+      }
+    },
+    computed:{
+      totalSize(){
+        if(this.demoList.length > 0){
+          return this.demoList.reduce((acc, demo) => demo.fileSizeMB + acc, 0).toFixed(2)
+        }else{
+          return 0
         }
       }
     },

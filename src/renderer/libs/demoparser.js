@@ -18,9 +18,16 @@ let demoparser = {
       
       for (const file of files)
 
-        if (path.extname(file) == ".odd")
-          demos.push({demoname: String(file)})
+        if (path.extname(file) == ".odd"){
 
+          let stats = fs.statSync(path.join(demoPath, file))
+
+          demos.push({
+            demoname: String(file), 
+            fileSizeMB : Math.round( (stats["size"] / 1000000.0) * 1e2 ) / 1e2
+          })
+        }
+          
     } catch (err) {
 
       //create the default demoPath dir if it does not exist
