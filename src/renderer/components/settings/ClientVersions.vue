@@ -73,7 +73,7 @@ export default {
 
         parseXML(response.data, (err, result) => {
 
-          result.ListBucketResult.Contents.forEach(element => {
+          result.ListBucketResult.Contents.slice().reverse().forEach(element => { //sort by last version
             
             let path = element.Key[0]
 
@@ -96,9 +96,9 @@ export default {
               }else if(os.platform() == 'darwin' && path.includes("_macos")){ //macos
 
                   this.repoBins.push({
-                    name: 'Odamex ' + filepath.replace('macos.zip', ''),
+                    name: 'Odamex ' + filepath.replace('macos.dmg', ''),
                     filename: filepath,
-                    foldername: filepath.replace('macos.zip', ''),
+                    foldername: filepath.replace('macos.dmg', ''),
                     url: path,
                     kind: 'official'
                   })
@@ -126,9 +126,9 @@ export default {
               }else if(os.platform() == 'darwin' && path.includes("_macos")){ //macos
 
                   this.repoBins.push({
-                    name: 'Odamex ' + filepath.replace('macos.zip', ''),
+                    name: 'Odamex ' + filepath.replace('macos.dmg', ''),
                     filename: filepath,
-                    foldername: filepath.replace('macos.zip', ''),
+                    foldername: filepath.replace('macos.dmg', ''),
                     url: path,
                     kind: 'experimental'
                   })
@@ -219,8 +219,14 @@ export default {
 
         const request = https.get("https://storage.googleapis.com/spawner_repo/" + binObject.url, (resp) => {  
           
-          resp.pipe(file) //save to file
-          .on('finish', () => this.extractBin(binObject))
+          resp.pipe(file)
+          .on('finish', () => {
+            
+            this.extractBin(binObject) //unextract zip file (for windows binaries)
+            
+            //TODO: install macOS binary 
+
+          })
 
         })
 
@@ -229,8 +235,6 @@ export default {
       }
     },
     async extractBin(binObject){
-
-      let vueThis = this
 
       try{
 
