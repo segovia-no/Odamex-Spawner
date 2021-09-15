@@ -35,21 +35,25 @@
       > 
 
       <template v-slot:cell(name)="data">
-        {{ data.item.demoname }}
+        {{ data.item.demoName }}
       </template>
       
+      <template v-slot:cell(version)="data">
+        {{ data.item.clientVersion }}
+      </template>
+
       <template v-slot:row-details="row">
         <b-card>
 
           <b-row>
 
             <b-col xl="7" lg="6" md="12" class="serverInfo">
-              <b-card-sub-title>{{row.item.demoname}}</b-card-sub-title>
+              <b-card-sub-title>{{row.item.hostName}}</b-card-sub-title>
             </b-col>
 
             <b-col xl="5" lg="6" md="12">
 
-              <div>
+              <div class="float-right">
                 <b-button @click="playDemo" variant="primary" class="float-right">Play Demo </b-button>
               </div>
 
@@ -92,8 +96,13 @@
         },
         demoFields: [
         {
-          key: 'demoname',
+          key: 'demoName',
           label: 'Demo Name',
+          sortable: true
+        },
+        {
+          key: 'clientVersion',
+          label: 'Version',
           sortable: true
         }
         ],
@@ -130,7 +139,7 @@
 
         if(demo.length > 0){
 
-          let newDemoIndex = this.demoList.findIndex(d => d.demoname === demo[0].demoname)
+          let newDemoIndex = this.demoList.findIndex(d => d.demoName === demo[0].demoName)
 
           this.connectPassword = null
           this.selectedDemo = demo[0]
