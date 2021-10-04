@@ -47,16 +47,14 @@
 
           <b-row>
 
-            <b-col xl="7" lg="6" md="12" class="serverInfo">
+            <b-col cols="10" class="serverInfo mt-2">
               <b-card-sub-title>{{row.item.hostName}}</b-card-sub-title>
             </b-col>
 
-            <b-col xl="5" lg="6" md="12">
-
-              <div class="float-right">
-                <b-button @click="playDemo" variant="primary" class="float-right">Play Demo </b-button>
-              </div>
-
+            <b-col>
+              <b-button size="sm" @click="playDemo" variant="outline-primary">
+                <font-awesome-icon icon="play" fixed-width /> Play
+              </b-button>
             </b-col>
 
           </b-row>
@@ -91,9 +89,6 @@
         demoListFilter: null,
         tableState: 'loading',
         lastselectedDemoIndex: null,
-        selectedDemo: {
-          demoname: ''
-        },
         demoFields: [
         {
           key: 'demoName',
@@ -156,7 +151,7 @@
         
       },
       playDemo(){
-        let connectParam = ["-netplay", this.$store.state.demoPath + "/" + this.selectedDemo.demoname]
+        let connectParam = ["-netplay", this.$store.state.demoPath + "/" + this.selectedDemo.demoName]
         this.$store.dispatch('connecttoServer', connectParam)
       },
     },
