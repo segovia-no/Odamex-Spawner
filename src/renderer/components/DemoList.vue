@@ -48,13 +48,21 @@
           <b-row>
 
             <b-col cols="10" class="serverInfo mt-2">
-              <b-card-sub-title>{{row.item.hostName}}</b-card-sub-title>
+              <b-card-sub-title class="serverAddress">{{row.item.hostName}}</b-card-sub-title>
             </b-col>
 
             <b-col>
               <b-button size="sm" @click="playDemo" variant="outline-primary">
                 <font-awesome-icon icon="play" fixed-width /> Play
               </b-button>
+            </b-col>
+
+          </b-row>
+
+          <b-row class="mb-n3">
+
+            <b-col cols="10">
+              <p><strong>POV: {{row.item.pov}}</strong></p>
             </b-col>
 
           </b-row>
