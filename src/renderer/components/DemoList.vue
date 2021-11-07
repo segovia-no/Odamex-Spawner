@@ -5,7 +5,7 @@
       <b-button size="sm" variant="primary" @click="retrieveDemos()" class="float-right mt-1"><font-awesome-icon icon="sync" /> Refresh</b-button>
     </h2>
 
-    <p>Demo count: {{demoList.length}}</p>
+    <p><strong>Demo count:</strong> {{demoList.length}} | <strong>Total Size:</strong> {{totalSize}} MB</p>
 
     <b-input-group class="demoFilterInput" :class="{filtering: demoListFilter}" size="sm">
 
@@ -35,24 +35,34 @@
       > 
 
       <template v-slot:cell(name)="data">
-        {{ data.item.demoname }}
+        {{ data.item.demoName }}
       </template>
       
+      <template v-slot:cell(version)="data">
+        {{ data.item.clientVersion }}
+      </template>
+
       <template v-slot:row-details="row">
         <b-card>
 
           <b-row>
 
-            <b-col xl="7" lg="6" md="12" class="serverInfo">
-              <b-card-sub-title>{{row.item.demoname}}</b-card-sub-title>
+            <b-col cols="10" class="serverInfo mt-2">
+              <b-card-sub-title class="serverAddress">{{row.item.hostName}}</b-card-sub-title>
             </b-col>
 
-            <b-col xl="5" lg="6" md="12">
+            <b-col>
+              <b-button size="sm" @click="playDemo" variant="outline-primary">
+                <font-awesome-icon icon="play" fixed-width /> Play
+              </b-button>
+            </b-col>
 
-              <div>
-                <b-button @click="playDemo" variant="primary" class="float-right">Play Demo </b-button>
-              </div>
+          </b-row>
 
+          <b-row class="mb-n3">
+
+            <b-col cols="10">
+              <p><strong>POV: {{row.item.pov}}</strong></p>
             </b-col>
 
           </b-row>
@@ -87,13 +97,15 @@
         demoListFilter: null,
         tableState: 'loading',
         lastselectedDemoIndex: null,
-        selectedDemo: {
-          demoname: ''
-        },
         demoFields: [
         {
-          key: 'demoname',
+          key: 'demoName',
           label: 'Demo Name',
+          sortable: true
+        },
+        {
+          key: 'clientVersion',
+          label: 'Version',
           sortable: true
         }
         ],
@@ -101,6 +113,15 @@
           cl_autorecord: false,
           cl_splitnetdemos: false,
           cl_netdemoname: 'Odamex_%g_%d_%t_%w_%m'
+        }
+      }
+    },
+    computed:{
+      totalSize(){
+        if(this.demoList.length > 0){
+          return this.demoList.reduce((acc, demo) => demo.fileSizeMB + acc, 0).toFixed(2)
+        }else{
+          return 0
         }
       }
     },
@@ -121,7 +142,7 @@
 
         if(demo.length > 0){
 
-          let newDemoIndex = this.demoList.findIndex(d => d.demoname === demo[0].demoname)
+          let newDemoIndex = this.demoList.findIndex(d => d.demoName === demo[0].demoName)
 
           this.connectPassword = null
           this.selectedDemo = demo[0]
@@ -138,7 +159,7 @@
         
       },
       playDemo(){
-        let connectParam = ["-netplay", this.$store.state.demoPath + "/" + this.selectedDemo.demoname]
+        let connectParam = ["-netplay", this.$store.state.demoPath + "/" + this.selectedDemo.demoName]
         this.$store.dispatch('connecttoServer', connectParam)
       },
     },
