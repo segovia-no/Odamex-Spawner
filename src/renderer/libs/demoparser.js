@@ -14,53 +14,79 @@ let demoparser = {
     let demos = []
     let defaultPath = path.resolve('demos')
 
+    const gametypes = {0:'Cooperative', 1:'Deathmatch', 2:'Team Deathmatch', 3: 'Capture The Flag'}
+
+    const hex_regexs = [
+      {
+        'name': 'gameType',
+        're': /73,76,5f,67,61,6d,65,74,79,70,65,00,(?<gameType>..)/,
+      },
+      {
+        'name': 'hostName',
+        're': /73,76,5f,68,6f,73,74,6e,61,6d,65,00,(?<hostName>(.*?))00/,
+      },
+      {
+        'name': 'pov',
+        're': /aa(...){49}(?<pov>(.*?))00/
+      }
+    ]
+
     try {
 
       const files = await fs.promises.readdir(demoPath)
       
-      for (const file of files)
+      for (const file of files){
 
         if (path.extname(file) == ".odd"){
-  
-          let stats = fs.statSync(path.join(demoPath, file))
 
-          //parse the GAMEVER byte, found in 0.6.0 and newer
-          let gamever = 0
+          let currentDemo = {
+            demoName: String(file), 
+            fileSizeMB : 0,
+            clientVersion: '',
+            hostName: '',
+            gameType: '',
+            pov: ''
+          }
+          
           let legacy_demo = false
-          let hex_arr = fs.readFileSync(path.join(demoPath, file)).slice(0, 1024).toString('hex').match(/(..)/g)
+          let gamever = 0
+
+          //file size
+          let stats = fs.statSync(path.join(demoPath, file))
+          currentDemo.fileSizeMB = Math.round( (stats["size"] / 1000000.0) * 1e2 ) / 1e2
+
+          //store first 2560 bytes of the demo
+          let hex_arr = fs.readFileSync(path.join(demoPath, file)).slice(0, 2560).toString('hex').match(/(..)/g)
           let demo_slice = hex_arr.slice(81, 1024)  
-          let pov_slice = demo_slice.slice(demo_slice.indexOf('aa') + 50, demo_slice.indexOf('aa') + 100)
-
+          let demo_str = hex_arr.slice(81, 2560).toString()
+          
+          //parse the GAMEVER byte
           if (hex_arr[4] == '02') { //NETDEMOVER 02 indicates 0.5.4 - 0.5.6 
-
             legacy_demo = true
-
           } else if (demo_slice[demo_slice.indexOf('aa')-1] == '0a'){
-
-            let gamever_index = demo_slice.indexOf('aa') - 69 
-            gamever = new Uint8Array(demo_slice[gamever_index].match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
-          
+            gamever = new Uint8Array(demo_slice[demo_slice.indexOf('aa') - 69].match(/.{1,2}/g).map(byte => parseInt(byte, 16)))     
           } else { 
-
-            let gamever_index = demo_slice.indexOf('aa') - 5 
-            gamever = new Uint8Array(demo_slice[gamever_index].match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
-          
+            gamever = new Uint8Array(demo_slice[demo_slice.indexOf('aa') - 5].match(/.{1,2}/g).map(byte => parseInt(byte, 16)))      
           }
 
-          //oda version - major.minor.patch 
-          let gamever_str = Math.floor(gamever / 256).toString() + '.' + Math.floor((gamever % 256) / 10).toString() + '.' + ((gamever % 256) % 10).toString()
-          
-          let hostname = Buffer.from(demo_slice.slice(0, demo_slice.indexOf('00')).join(' ').replace(/\s+/g, ''), 'hex').toString('utf8')
-          let pov = Buffer.from(pov_slice.slice(0, pov_slice.indexOf('00')).join(' ').replace(/\s+/g, ''), 'hex').toString('utf8')
-          
-          demos.push({
-            demoName: String(file), 
-            fileSizeMB : Math.round( (stats["size"] / 1000000.0) * 1e2 ) / 1e2,
-            clientVersion: (legacy_demo) ? '0.5.4-0.5.6' : gamever_str,
-            hostName: hostname,
-            pov: pov
-          })
+          //convert gamever to oda version - major.minor.patch 
+          let oda_version = Math.floor(gamever / 256).toString() + '.' + Math.floor((gamever % 256) / 10).toString() + '.' + ((gamever % 256) % 10).toString()
+          currentDemo.clientVersion = (legacy_demo) ? '0.5.4-0.5.6' : oda_version
+
+          //parse the regexs
+          for (const regex of hex_regexs){
+            try {
+              let found_re = regex['re'].exec(demo_str)
+              let decode = Buffer.from(found_re.groups[regex['name']].replace(/,/g, ''), 'hex').toString('utf8')
+              currentDemo[regex['name']] = (regex['name'] == 'gameType') ? gametypes[decode] : decode
+            } catch (err) {}
+          }
+
+          demos.push(currentDemo)
+
         }
+
+      }
           
     } catch (err) {
 

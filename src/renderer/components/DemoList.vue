@@ -59,10 +59,12 @@
 
           </b-row>
 
-          <b-row class="mb-n3">
+          <b-row class="mb-n2">
 
-            <b-col cols="10">
+            <b-col class="serverInfo">
               <p><strong>POV: {{row.item.pov}}</strong></p>
+              <b-badge v-if="row.item.gameType === 'Capture The Flag'" variant="info"><font-awesome-icon icon="flag" fixed-width /> CTF</b-badge>
+              <b-badge v-else :variant="gameTypeColor(row.item)"><font-awesome-icon icon="users" fixed-width /> {{row.item.gameType}}</b-badge> 
             </b-col>
 
           </b-row>
@@ -162,6 +164,19 @@
         let connectParam = ["-netplay", this.$store.state.demoPath + "/" + this.selectedDemo.demoName]
         this.$store.dispatch('connecttoServer', connectParam)
       },
+      gameTypeColor(item){
+        if(item.gameType == 'Cooperative'){
+          return 'success'
+        }else if(item.gameType == 'Deathmatch'){
+          if(item.teamPlay){
+            return 'primary'
+          }else{
+            return 'warning'
+          }
+        }else if(item.gameType == 'Duel'){
+          return 'info'
+        }
+      }
     },
     mounted(){
       this.retrieveDemos()
