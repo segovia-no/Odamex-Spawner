@@ -1,5 +1,3 @@
-import { strictEqual } from 'assert';
-
 let demoparser = {
 
   getDemosfromPath: async (demoPath) => {
@@ -18,16 +16,24 @@ let demoparser = {
 
     const hex_regexs = [
       {
+        'name': 'clientVersion',
+        're': /(..){65}050302010000(?<clientVersion>..)00000000aa?/
+      },
+      {
+        'name': 'clientVersion',
+        're': /(..){65}050302010000(?<clientVersion>..)(..){67}0aaa?/  //occasionally the gamever is found here
+      },
+      {
         'name': 'gameType',
-        're': /73,76,5f,67,61,6d,65,74,79,70,65,00,(?<gameType>..)/,
+        're': /73765f67616d657479706500(?<gameType>..)/,
       },
       {
         'name': 'hostName',
-        're': /73,76,5f,68,6f,73,74,6e,61,6d,65,00,(?<hostName>(.*?))00/,
+        're': /73765f686f73746e616d6500(?<hostName>.*?)00/,
       },
       {
         'name': 'pov',
-        're': /aa(...){49}(?<pov>(.*?))00/
+        're': /(..){65}((..)*?)aa(..){49}(?<pov>.*?)00/
       }
     ]
 
@@ -49,36 +55,36 @@ let demoparser = {
           }
           
           let legacy_demo = false
-          let gamever = 0
 
           //file size
           let stats = fs.statSync(path.join(demoPath, file))
           currentDemo.fileSizeMB = Math.round( (stats["size"] / 1000000.0) * 1e2 ) / 1e2
 
-          //store first 2560 bytes of the demo
-          let hex_arr = fs.readFileSync(path.join(demoPath, file)).slice(0, 2560).toString('hex').match(/(..)/g)
-          let demo_slice = hex_arr.slice(81, 1024)  
-          let demo_str = hex_arr.slice(81, 2560).toString()
+          //read first 2560 bytes of the demo
+          let hex_str = fs.readFileSync(path.join(demoPath, file)).slice(0, 2560).toString('hex')
           
-          //parse the GAMEVER byte
-          if (hex_arr[4] == '02') { //NETDEMOVER 02 indicates 0.5.4 - 0.5.6 
+          if (hex_str.slice(8, 10) == '02') { //NETDEMOVER byte 02 indicates 0.5.4 - 0.5.6 
             legacy_demo = true
-          } else if (demo_slice[demo_slice.indexOf('aa')-1] == '0a'){
-            gamever = new Uint8Array(demo_slice[demo_slice.indexOf('aa') - 69].match(/.{1,2}/g).map(byte => parseInt(byte, 16)))     
-          } else { 
-            gamever = new Uint8Array(demo_slice[demo_slice.indexOf('aa') - 5].match(/.{1,2}/g).map(byte => parseInt(byte, 16)))      
-          }
-
-          //convert gamever to oda version - major.minor.patch 
-          let oda_version = Math.floor(gamever / 256).toString() + '.' + Math.floor((gamever % 256) / 10).toString() + '.' + ((gamever % 256) % 10).toString()
-          currentDemo.clientVersion = (legacy_demo) ? '0.5.4-0.5.6' : oda_version
+          } 
 
           //parse the regexs
           for (const regex of hex_regexs){
+
             try {
-              let found_re = regex['re'].exec(demo_str)
-              let decode = Buffer.from(found_re.groups[regex['name']].replace(/,/g, ''), 'hex').toString('utf8')
+              let found_re = regex['re'].exec(hex_str)
+              if (regex['name'] == 'clientVersion' && legacy_demo){
+                currentDemo.clientVersion = '0.5.4-0.5.6'
+                continue
+              } else if (regex['name'] == 'clientVersion'){
+                let gamever = new Uint8Array(found_re.groups.clientVersion.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
+                //convert the GAMEVER byte to odamex version - major.minor.patch
+                var decode = Math.floor(gamever / 256).toString() + '.' + Math.floor((gamever % 256) / 10).toString() + '.' + ((gamever % 256) % 10).toString()
+              } else {
+                var decode = Buffer.from(found_re.groups[regex['name']], 'hex').toString('utf8')
+              }
+              
               currentDemo[regex['name']] = (regex['name'] == 'gameType') ? gametypes[decode] : decode
+              
             } catch (err) {}
           }
 
