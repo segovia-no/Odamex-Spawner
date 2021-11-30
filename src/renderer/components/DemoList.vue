@@ -37,6 +37,10 @@
       <template v-slot:cell(name)="data">
         {{ data.item.demoName }}
       </template>
+
+      <template v-slot:cell(gametype)="data">
+        {{ data.item.gameType }}
+      </template>
       
       <template v-slot:cell(version)="data">
         {{ data.item.clientVersion }}
@@ -103,6 +107,11 @@
         {
           key: 'demoName',
           label: 'Demo Name',
+          sortable: true
+        },
+        {
+          key: 'gameType',
+          label: 'Type',
           sortable: true
         },
         {
