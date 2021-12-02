@@ -57,6 +57,7 @@
     "axios": "^0.21.1",
     "bootstrap-css-only": "^4.3.1",
     "bootstrap-vue": "^2.1.0",
+    "extract-dmg": "^1.0.0",
     "font-awesome": "^4.7.0",
     "unzipper": "^0.10.8",
     "vue": "^2.5.16",
