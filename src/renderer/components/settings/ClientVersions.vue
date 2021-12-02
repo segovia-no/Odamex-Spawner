@@ -242,7 +242,7 @@ export default {
 
         folders.checkDirectory(newBinPath)
 
-        if(os.platform() == 'darwin'){
+        if(os.platform() == 'darwin'){ //macos
 
           await extractDmg(downloadPath, newBinPath)
 
@@ -254,7 +254,7 @@ export default {
               this.$set(this.mergedBins[indexFound], 'downloaded', true)
             }
 
-        } else {
+        } else { //windows
 
           fs.createReadStream(downloadPath)
 
