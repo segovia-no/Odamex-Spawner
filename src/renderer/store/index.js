@@ -5,6 +5,7 @@ import VuexPersist from 'vuex-persistfile'
 import fs from 'fs'
 import util from 'util'
 import {lstatSync} from 'fs'
+import os from 'os'
 
 const readdirAsync = util.promisify(fs.readdir)
 
@@ -84,7 +85,12 @@ export default new Vuex.Store({
       finalParams.push("-config")
       finalParams.push("./odamexbinconfig.cfg")
 
-      let fullBinPath = path.join(context.state.binPath, context.state.defaultBinPath, 'odamex.exe')
+      if (os.platform() == 'darwin'){
+        var fullBinPath = path.join(context.state.binPath, context.state.defaultBinPath, 'Odamex/odamex.app/Contents/MacOS/odamex')
+      } else {
+        var fullBinPath = path.join(context.state.binPath, context.state.defaultBinPath, 'odamex.exe')
+      }
+
       child(fullBinPath, finalParams, function(err, data){})
 
     },

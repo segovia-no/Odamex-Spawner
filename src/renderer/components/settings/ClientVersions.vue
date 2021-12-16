@@ -50,6 +50,7 @@ import unzipper from 'unzipper'
 import folders from '@/libs/folders.js'
 
 const readdirAsync = util.promisify(fs.readdir)
+const extractDmg = require('extract-dmg');
 
 let parseXML = require('xml2js').parseString
 
@@ -96,9 +97,9 @@ export default {
               }else if(os.platform() == 'darwin' && path.includes("_macos")){ //macos
 
                   this.repoBins.push({
-                    name: 'Odamex ' + filepath.replace('macos.dmg', ''),
+                    name: 'Odamex ' + filepath.replace('_macos.dmg', ''),
                     filename: filepath,
-                    foldername: filepath.replace('macos.dmg', ''),
+                    foldername: filepath.replace('_macos.dmg', ''),
                     url: path,
                     kind: 'official'
                   })
@@ -126,9 +127,9 @@ export default {
               }else if(os.platform() == 'darwin' && path.includes("_macos")){ //macos
 
                   this.repoBins.push({
-                    name: 'Odamex ' + filepath.replace('macos.dmg', ''),
+                    name: 'Odamex ' + filepath.replace('_macos.dmg', ''),
                     filename: filepath,
-                    foldername: filepath.replace('macos.dmg', ''),
+                    foldername: filepath.replace('_macos.dmg', ''),
                     url: path,
                     kind: 'experimental'
                   })
@@ -221,10 +222,8 @@ export default {
           
           resp.pipe(file)
           .on('finish', () => {
-            
-            this.extractBin(binObject) //unextract zip file (for windows binaries)
-            
-            //TODO: install macOS binary 
+
+            this.extractBin(binObject) //unextract zip file 
 
           })
 
@@ -243,23 +242,39 @@ export default {
 
         folders.checkDirectory(newBinPath)
 
-        fs.createReadStream(downloadPath)
+        if(os.platform() == 'darwin'){ //macos
 
-        .pipe(unzipper.Extract({ path: newBinPath}))
-
-        .on('close', () => {
+          await extractDmg(downloadPath, newBinPath)
 
           //set download state
-          let indexFound = this.mergedBins.findIndex(binFromList => binFromList.url == binObject.url)
+          var indexFound = this.mergedBins.findIndex(binFromList => binFromList.url == binObject.url)
 
           if(indexFound != -1){
-            this.$set(this.mergedBins[indexFound], '_isDownloading', false)
-            this.$set(this.mergedBins[indexFound], 'downloaded', true)
-          }
+              this.$set(this.mergedBins[indexFound], '_isDownloading', false)
+              this.$set(this.mergedBins[indexFound], 'downloaded', true)
+            }
 
-          this.$store.dispatch('refreshBINSList') //refresh select version in navbar
+        } else { //windows
 
-        })
+          fs.createReadStream(downloadPath)
+
+          .pipe(unzipper.Extract({ path: newBinPath}))
+
+          .on('close', () => {
+
+            //set download state
+            var indexFound = this.mergedBins.findIndex(binFromList => binFromList.url == binObject.url)
+
+            if(indexFound != -1){
+              this.$set(this.mergedBins[indexFound], '_isDownloading', false)
+              this.$set(this.mergedBins[indexFound], 'downloaded', true)
+            }
+
+          })
+
+        }
+
+        this.$store.dispatch('refreshBINSList') //refresh select version in navbar
 
       }catch(e){
         console.error(e)
