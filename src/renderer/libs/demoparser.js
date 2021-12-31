@@ -17,11 +17,7 @@ let demoparser = {
     const hex_regexs = [
       {
         'name': 'clientVersion',
-        're': /(..){65}050302010000(?<clientVersion>..)00000000aa?/
-      },
-      {
-        'name': 'clientVersion',
-        're': /(..){65}050302010000(?<clientVersion>..)(..){67}0aaa?/  //occasionally the gamever is found here
+        're': /(..){65}050302010000(?<clientVersion>..)/
       },
       {
         'name': 'gameType',
@@ -33,7 +29,7 @@ let demoparser = {
       },
       {
         'name': 'pov',
-        're': /(..){65}050302010000(..){5}aa(..){49}(?<pov>.*?)00/
+        're': /(..){65}050302010000((..)*?)aa(..){49}(?<pov>.*?)00/
       }
     ]
 
@@ -65,6 +61,7 @@ let demoparser = {
           
           if (hex_str.slice(8, 10) == '02') { //NETDEMOVER byte 02 indicates 0.5.4 - 0.5.6 
             legacy_demo = true
+            currentDemo.clientVersion = '0.5.4-0.5.6'
           } 
 
           //parse the regexs
@@ -72,8 +69,7 @@ let demoparser = {
 
             try {
               let found_re = regex['re'].exec(hex_str)
-              if (regex['name'] == 'clientVersion' && legacy_demo){
-                currentDemo.clientVersion = '0.5.4-0.5.6'
+              if (regex['name'] == 'clientVersion' && legacy_demo){  
                 continue
               } else if (regex['name'] == 'clientVersion'){
                 let gamever = new Uint8Array(found_re.groups.clientVersion.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
