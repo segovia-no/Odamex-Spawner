@@ -4,6 +4,7 @@ let demoparser = {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // This process parses odamex demos from the Demo Path
+    // https://github.com/odamex/odamex/blob/stable/client/src/cl_demo.cpp 
     /////////////////////////////////////////////////////////////////////////////////////////////
 
     const fs = require('fs')
@@ -12,26 +13,17 @@ let demoparser = {
     let demos = []
     let defaultPath = path.resolve('demos')
 
-    const gametypes = {0:'Cooperative', 1:'Deathmatch', 2:'Team Deathmatch', 3: 'Capture The Flag'}
+    const gametypes = {0: 'Cooperative', 1: 'Deathmatch', 2: 'Team Deathmatch', 3: 'Capture The Flag', 4: 'Horde'}
 
-    const hex_regexs = [
-      {
-        'name': 'clientVersion',
-        're': /(..){65}050302010000(?<clientVersion>..)/
-      },
-      {
-        'name': 'gameType',
-        're': /73765f67616d657479706500(?<gameType>..)/,
-      },
-      {
-        'name': 'hostName',
-        're': /73765f686f73746e616d6500(?<hostName>.*?)00/,
-      },
-      {
-        'name': 'pov',
-        're': /(..){65}050302010000((..)*?)aa(..){49}(?<pov>.*?)00/
-      }
-    ]
+    const demoRegexs = { 
+
+      'clientVersion': /(..){65}050302010000(?<clientVersion>....)/,  // the GAMEVER bytes
+      'gametype': /73765f67616d6574797065((..)*?)(?<gametype>30|31|32|33|34)/, 
+      'hostname': /(..){81}(?<hostname>((..)*?)(00..00?))/,
+      'sv_hostname': /73765f686f73746e616d6500(?<hostname>(..)*?)00/,
+      'pov': /((..){65}050302010000..00((..)*?)aa(..){49}|(..){65}050302010000....((..)*?)aa(..){57})(?<pov>(..)*?)(00|2a)/
+
+    }
 
     try {
 
@@ -49,41 +41,46 @@ let demoparser = {
             gameType: '',
             pov: ''
           }
+
+          try {
+
+            let stats = fs.statSync(path.join(demoPath, file))
+            currentDemo.fileSizeMB = Math.round( (stats["size"] / 1000000.0) * 1e2 ) / 1e2
+
+            //slice first 2560 bytes of the demo
+            let hexStr = fs.readFileSync(path.join(demoPath, file)).slice(0, 2560).toString('hex')
+
+
+            if (hexStr.slice(8, 10) == '02') { //NETDEMOVER byte 02 indicates 0.5.4 - 0.5.6 
+
+              currentDemo.clientVersion = '0.5.4-0.5.6'
+
+              let sv_hostnameMatch = demoRegexs.sv_hostname.exec(hexStr)
+              currentDemo.hostName = Buffer.from(sv_hostnameMatch.groups.hostname, 'hex').toString('utf8')
+
+              let gametypeMatch = demoRegexs.gametype.exec(hexStr)            
+              currentDemo.gameType = gametypes[Buffer.from(gametypeMatch.groups.gametype, 'hex').toString('utf8')]
+
+            } else {  //NETDEMOVER 03 most common
+
+              let versionMatch = demoRegexs.clientVersion.exec(hexStr)
+              let gamever = Buffer.from(versionMatch.groups.clientVersion, 'hex').readInt16LE()
+              let odaVersionStr = Math.floor(gamever / 256).toString() + '.' + Math.floor((gamever % 256) / 10).toString() + '.' + ((gamever % 256) % 10).toString()
+              currentDemo.clientVersion = odaVersionStr
+
+              let gametypeMatch = demoRegexs.gametype.exec(hexStr)            
+              currentDemo.gameType = gametypes[Buffer.from(gametypeMatch.groups.gametype, 'hex').toString('utf8')]
+
+              let hostnameMatch = demoRegexs.hostname.exec(hexStr)     
+              currentDemo.hostName = Buffer.from(hostnameMatch.groups.hostname, 'hex').toString('utf8')
+
+              let povMatch = demoRegexs.pov.exec(hexStr)
+              currentDemo.pov = Buffer.from(povMatch.groups.pov, 'hex').toString('utf8')
+
+            }
+
+          } catch(err) {} //pass silently to next demo if any parsing fails
           
-          let legacy_demo = false
-
-          //file size
-          let stats = fs.statSync(path.join(demoPath, file))
-          currentDemo.fileSizeMB = Math.round( (stats["size"] / 1000000.0) * 1e2 ) / 1e2
-
-          //read first 2560 bytes of the demo
-          let hex_str = fs.readFileSync(path.join(demoPath, file)).slice(0, 2560).toString('hex')
-          
-          if (hex_str.slice(8, 10) == '02') { //NETDEMOVER byte 02 indicates 0.5.4 - 0.5.6 
-            legacy_demo = true
-            currentDemo.clientVersion = '0.5.4-0.5.6'
-          } 
-
-          //parse the regexs
-          for (const regex of hex_regexs){
-
-            try {
-              let found_re = regex['re'].exec(hex_str)
-              if (regex['name'] == 'clientVersion' && legacy_demo){  
-                continue
-              } else if (regex['name'] == 'clientVersion'){
-                let gamever = new Uint8Array(found_re.groups.clientVersion.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
-                //convert the GAMEVER byte to odamex version - major.minor.patch
-                var decode = Math.floor(gamever / 256).toString() + '.' + Math.floor((gamever % 256) / 10).toString() + '.' + ((gamever % 256) % 10).toString()
-              } else {
-                var decode = Buffer.from(found_re.groups[regex['name']], 'hex').toString('utf8')
-              }
-              
-              currentDemo[regex['name']] = (regex['name'] == 'gameType') ? gametypes[decode] : decode
-              
-            } catch (err) {}
-          }
-
           demos.push(currentDemo)
 
         }
