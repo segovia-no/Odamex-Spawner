@@ -17,11 +17,10 @@ let demoparser = {
 
     const demoRegexs = { 
 
-      'clientVersion': /(..){65}050302010000(?<clientVersion>....)/,  // the GAMEVER bytes
+      'clientVersion': /050302010000(?<clientVersion>....)/,  // the GAMEVER bytes, found in demo versions 0.5.4+
       'gametype': /73765f67616d6574797065((..)*?)(?<gametype>30|31|32|33|34)/, 
-      'hostname': /(..){81}(?<hostname>((..)*?))(00..00?)/,
-      'sv_hostname': /73765f686f73746e616d6500(?<hostname>(..)*?)00/,
-      'pov': /((..){65}050302010000..00((..)*?)aa(..){49}|(..){65}050302010000....((..)*?)aa(..){57})(?<pov>(..)*?)(00|2a)/
+      'hostname': /(..){81}(?<hostname>((..)*?))(00..00?)/,   // found in 0.6+
+      'pov': /((..){65}050302010000..00((..)*?)aa(..){49}|(..){65}050302010000....((..)*?)aa(..){57})(?<pov>(..)*?)(00|2a)/   //0.6+
 
     }
 
@@ -50,34 +49,23 @@ let demoparser = {
             //slice first 2560 bytes of the demo
             let hexStr = fs.readFileSync(path.join(demoPath, file)).slice(0, 2560).toString('hex')
 
-
-            if (hexStr.slice(8, 10) == '02') { //NETDEMOVER byte 02 indicates 0.5.4 - 0.5.6 
-
-              currentDemo.clientVersion = '0.5.4-0.5.6'
-
-              let sv_hostnameMatch = demoRegexs.sv_hostname.exec(hexStr)
-              currentDemo.hostName = Buffer.from(sv_hostnameMatch.groups.hostname, 'hex').toString('utf8')
-
-              let gametypeMatch = demoRegexs.gametype.exec(hexStr)            
-              currentDemo.gameType = gametypes[Buffer.from(gametypeMatch.groups.gametype, 'hex').toString('utf8')]
-
-            } else {  //NETDEMOVER 03 most common
-
-              let versionMatch = demoRegexs.clientVersion.exec(hexStr)
-              let gamever = Buffer.from(versionMatch.groups.clientVersion, 'hex').readInt16LE()
-              let odaVersionStr = Math.floor(gamever / 256).toString() + '.' + Math.floor((gamever % 256) / 10).toString() + '.' + ((gamever % 256) % 10).toString()
-              currentDemo.clientVersion = odaVersionStr
-
-              let gametypeMatch = demoRegexs.gametype.exec(hexStr)            
-              currentDemo.gameType = gametypes[Buffer.from(gametypeMatch.groups.gametype, 'hex').toString('utf8')]
-
-              let hostnameMatch = demoRegexs.hostname.exec(hexStr)     
-              currentDemo.hostName = Buffer.from(hostnameMatch.groups.hostname, 'hex').toString('utf8')
-
-              let povMatch = demoRegexs.pov.exec(hexStr)
-              currentDemo.pov = Buffer.from(povMatch.groups.pov, 'hex').toString('utf8').replace(/[\u0018|\u0001]+/g, '')
-
+            if (hexStr.slice(8, 10) == '01') { 
+              currentDemo.clientVersion = '0.5.3'
             }
+
+            let versionMatch = demoRegexs.clientVersion.exec(hexStr)
+            let gamever = Buffer.from(versionMatch.groups.clientVersion, 'hex').readInt16LE()
+            let odaVersionStr = Math.floor(gamever / 256).toString() + '.' + Math.floor((gamever % 256) / 10).toString() + '.' + ((gamever % 256) % 10).toString()
+            currentDemo.clientVersion = odaVersionStr
+
+            let gametypeMatch = demoRegexs.gametype.exec(hexStr)            
+            currentDemo.gameType = gametypes[Buffer.from(gametypeMatch.groups.gametype, 'hex').toString('utf8')]
+
+            let povMatch = demoRegexs.pov.exec(hexStr)
+            currentDemo.pov = Buffer.from(povMatch.groups.pov, 'hex').toString('utf8').replace(/[\u0018|\u0001]+/g, '')
+
+            let hostnameMatch = demoRegexs.hostname.exec(hexStr)     
+            currentDemo.hostName = Buffer.from(hostnameMatch.groups.hostname, 'hex').toString('utf8')
 
           } catch(err) {} //pass silently to next demo if any parsing fails
           
