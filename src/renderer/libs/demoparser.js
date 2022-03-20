@@ -19,7 +19,7 @@ let demoparser = {
 
       'clientVersion': /(..){65}050302010000(?<clientVersion>....)/,  // the GAMEVER bytes
       'gametype': /73765f67616d6574797065((..)*?)(?<gametype>30|31|32|33|34)/, 
-      'hostname': /(..){81}(?<hostname>((..)*?)(00..00?))/,
+      'hostname': /(..){81}(?<hostname>((..)*?))(00..00?)/,
       'sv_hostname': /73765f686f73746e616d6500(?<hostname>(..)*?)00/,
       'pov': /((..){65}050302010000..00((..)*?)aa(..){49}|(..){65}050302010000....((..)*?)aa(..){57})(?<pov>(..)*?)(00|2a)/
 
@@ -75,7 +75,7 @@ let demoparser = {
               currentDemo.hostName = Buffer.from(hostnameMatch.groups.hostname, 'hex').toString('utf8')
 
               let povMatch = demoRegexs.pov.exec(hexStr)
-              currentDemo.pov = Buffer.from(povMatch.groups.pov, 'hex').toString('utf8')
+              currentDemo.pov = Buffer.from(povMatch.groups.pov, 'hex').toString('utf8').replace(/[\u0018|\u0001]+/g, '')
 
             }
 
